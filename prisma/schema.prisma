@@ -1,0 +1,295 @@
+// LMS Platform - Prisma Schema
+// Entities map directly to the BRD (see docs/README.md for requirement IDs).
+// This is a STARTER schema reflecting the agreed data model shape -
+// field-level detail will be refined during full technical design.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth & Roles (AUTH-*)
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER // Platform Admin - full control (single owner in v1)
+  ORG_ADMIN // Manages one Organization's seats/learners
+  LEARNER // Individual or org-affiliated learner
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String? // null if using OAuth/SSO later (AUTH-06, v2)
+  role          Role      @default(LEARNER)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Org affiliation - null means standalone individual learner (ACC-06)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // If this user is an Org Admin, which org(s) do they administer (ACC-03)
+  adminOfOrganizations Organization[] @relation("OrgAdmins")
+
+  enrollments      Enrollment[]
+  progressRecords  Progress[]
+  quizAttempts     QuizAttempt[]
+  certificates     Certificate[]
+  sentInvitations  Invitation[]      @relation("InvitedBy")
+  receivedInvite   Invitation?       @relation("InvitedUser")
+
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// Organizations & Seats (ACC-01, ACC-02, ACC-09)
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  seatLimit Int // ACC-02 / ACC-09 - enforce at invite time
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  admins      User[]       @relation("OrgAdmins")
+  learners    User[]
+  courseGrants CourseGrant[] // Courses assigned to this org (CRS / ACC-02)
+  invitations  Invitation[]
+}
+
+// ---------------------------------------------------------------------------
+// Invitations (ACC-06, ACC-07, ACC-08)
+// ---------------------------------------------------------------------------
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model Invitation {
+  id        String           @id @default(cuid())
+  email     String
+  token     String           @unique // unique, expiring link (ACC-07)
+  status    InvitationStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  invitedById String
+  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  // null = individual invite directly by Owner; set = org-scoped invite
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // populated once accepted
+  invitedUserId String? @unique
+  invitedUser   User?   @relation("InvitedUser", fields: [invitedUserId], references: [id])
+
+  // Courses to grant access to once accepted
+  courseIds String[] // simple starter approach; consider join table if grants need metadata
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// Courses & Content (CRS-*)
+// ---------------------------------------------------------------------------
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  thumbnailUrl String?
+  status      CourseStatus @default(DRAFT) // CRS-08
+  passThreshold Int?        // course-level quiz pass % if applicable (REV-02)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  sections     Section[]
+  grants       CourseGrant[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+}
+
+model Section {
+  id       String @id @default(cuid())
+  title    String
+  order    Int
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons Lesson[]
+
+  @@index([courseId])
+}
+
+enum LessonContentType {
+  VIDEO
+  DOCUMENT
+  SCORM
+}
+
+model Lesson {
+  id          String            @id @default(cuid())
+  title       String
+  order       Int
+  contentType LessonContentType // CRS-03
+  contentUrl  String? // video/document URL or SCORM package storage path
+  requiresPriorLesson Boolean   @default(false) // CRS-09 prerequisite ordering
+
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  quiz      Quiz?
+  progress  Progress[]
+
+  @@index([sectionId])
+}
+
+// Grants a Course to an Organization (whole-org access) - CRS-10/ACC-02
+model CourseGrant {
+  id             String       @id @default(cuid())
+  courseId       String
+  course         Course       @relation(fields: [courseId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  grantedAt      DateTime     @default(now())
+
+  @@unique([courseId, organizationId])
+}
+
+// ---------------------------------------------------------------------------
+// Enrollment & Tracking (TRK-*)
+// ---------------------------------------------------------------------------
+
+enum EnrollmentSource {
+  ORG_ASSIGNED
+  INDIVIDUAL_ASSIGNED
+}
+
+model Enrollment {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  courseId  String
+  course    Course           @relation(fields: [courseId], references: [id])
+  source    EnrollmentSource // traceability per DB-02
+  assignedById String? // who granted this access
+  enrolledAt DateTime        @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
+
+model Progress {
+  id       String         @id @default(cuid())
+  userId   String
+  user     User           @relation(fields: [userId], references: [id])
+  lessonId String
+  lesson   Lesson         @relation(fields: [lessonId], references: [id])
+  status   ProgressStatus @default(NOT_STARTED) // TRK-01
+
+  // Video tracking (TRK-02)
+  watchedSeconds Int?
+  watchedPercent Float?
+
+  // SCORM tracking (TRK-04) - stored as JSON to fit varying SCORM data models
+  scormData Json? // completion_status, success_status, score, suspend_data, etc.
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Assessment (REV-*)
+// ---------------------------------------------------------------------------
+
+model Quiz {
+  id            String @id @default(cuid())
+  lessonId      String @unique
+  lesson        Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  passThreshold Int    @default(80) // REV-02
+  maxAttempts   Int? // REV-03
+
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+model QuizQuestion {
+  id      String       @id @default(cuid())
+  quizId  String
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text    String
+  type    QuestionType
+  options Json // [{ id, text, isCorrect }]
+  order   Int
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  score     Float // REV-04
+  passed    Boolean
+  answers   Json // submitted answers, for audit
+  attemptedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+// ---------------------------------------------------------------------------
+// Certificates (CERT-*)
+// ---------------------------------------------------------------------------
+
+model Certificate {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  pdfUrl      String // generated PDF storage path (CERT-01)
+  issuedAt    DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([userId])
+}
