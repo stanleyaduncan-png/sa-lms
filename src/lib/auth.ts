@@ -36,6 +36,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: { adminOfOrganizations: { select: { id: true } } },
         });
 
         if (!user || !user.passwordHash) {
@@ -47,12 +48,23 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // organizationId means different things per role:
+        // - LEARNER: the org they belong to (seat-holding affiliation, ACC-06)
+        // - ORG_ADMIN: the org they administer (adminOfOrganizations, not the
+        //   seat-holding field - keeps User.organizationId exclusively a seat
+        //   count input for ACC-09)
+        // - OWNER: always null, scoped to everything
+        const organizationId =
+          user.role === "ORG_ADMIN"
+            ? user.adminOfOrganizations[0]?.id ?? null
+            : user.organizationId;
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
-          organizationId: user.organizationId,
+          organizationId,
         };
       },
     }),

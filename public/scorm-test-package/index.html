@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>SCORM 1.2 Test Package</title>
+</head>
+<body style="font-family: sans-serif; padding: 1rem;">
+  <h1>SCORM 1.2 Test Package</h1>
+  <p>API found: <span id="api-found">checking…</span></p>
+  <p>Initialize result: <span id="init-result">-</span></p>
+  <p>Current lesson_status: <span id="lesson-status">-</span></p>
+  <p>Resumed suspend_data: <span id="suspend-data">-</span></p>
+  <p>
+    <button id="save-btn">Save Progress (suspend_data)</button>
+    <button id="complete-btn">Complete Lesson (status + score)</button>
+  </p>
+  <p id="log"></p>
+
+<script>
+  // Standard SCORM 1.2 API discovery: search up the window.parent chain
+  // (and window.opener as a fallback) for a global named exactly "API".
+  function findAPI(win) {
+    var attempts = 0;
+    while (win.API == null && win.parent != null && win.parent != win && attempts <= 500) {
+      attempts++;
+      win = win.parent;
+    }
+    return win.API;
+  }
+
+  function getAPI() {
+    var api = findAPI(window);
+    if (api == null && window.opener != null) {
+      api = findAPI(window.opener);
+    }
+    return api;
+  }
+
+  function log(msg) {
+    document.getElementById("log").textContent = msg;
+  }
+
+  var API = getAPI();
+  document.getElementById("api-found").textContent = API ? "yes" : "NO - handshake failed";
+
+  if (API) {
+    var initResult = API.LMSInitialize("");
+    document.getElementById("init-result").textContent = initResult;
+    document.getElementById("lesson-status").textContent = API.LMSGetValue("cmi.core.lesson_status");
+    document.getElementById("suspend-data").textContent = API.LMSGetValue("cmi.suspend_data") || "(none)";
+
+    document.getElementById("save-btn").addEventListener("click", function () {
+      var note = "progress-note-" + Date.now();
+      API.LMSSetValue("cmi.suspend_data", note);
+      API.LMSSetValue("cmi.core.lesson_location", "page-2");
+      var result = API.LMSCommit("");
+      log("Saved suspend_data=" + note + " (commit=" + result + ")");
+    });
+
+    document.getElementById("complete-btn").addEventListener("click", function () {
+      API.LMSSetValue("cmi.core.lesson_status", "completed");
+      API.LMSSetValue("cmi.core.score.raw", "100");
+      API.LMSSetValue("cmi.core.score.min", "0");
+      API.LMSSetValue("cmi.core.score.max", "100");
+      var result = API.LMSCommit("");
+      log("Marked completed, score=100 (commit=" + result + ")");
+    });
+
+    window.addEventListener("beforeunload", function () {
+      API.LMSFinish("");
+    });
+  } else {
+    log("No SCORM API found in the parent window chain - this package must be served same-origin with the LMS.");
+  }
+</script>
+</body>
+</html>
