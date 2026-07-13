@@ -152,9 +152,17 @@ in — the epics that depend on them. Update this list as answers come in.
 
 - Should Org Admins see individual quiz answers, or only pass/fail +
   score? *(affects Epic 5)*
-- What exactly defines "course complete" by default — 100% of lessons,
-  or lessons + passing assessment? Configurable per course? *(affects
-  Epics 4, 5, 6)*
+- ~~What exactly defines "course complete" by default — 100% of lessons,
+  or lessons + passing assessment? Configurable per course?~~ **Resolved
+  in Epic 5 (REV-06):** a course is complete when **all lessons are
+  viewed AND all attached quizzes are passed** — not configurable per
+  course in v1. SCORM lessons can't carry a native quiz (a SCORM lesson's
+  own reported pass/fail status *is* its assessment gate, consuming
+  `cmi.core.lesson_status` from Epic 4's SCORM bridge). Implemented in
+  `src/actions/progress.ts` (`recomputeEnrollmentCompletion`) and
+  `src/actions/enrollments.ts` (`courseProgressPercent`, which now counts
+  quizzes as gradable items alongside lessons so the percentage can't
+  reach 100% on content-viewing alone).
 - Multiple Org Admins per Organization with different permission levels
   (view-only vs. can-invite)? *(affects Epic 2)*
 - Seat limits: hard cap (block) or soft cap (warn but allow)? *(affects
@@ -189,3 +197,4 @@ way?" without digging through chat history.
 | June 2026 | Confirmed Auth.js v4 (not v5 beta) + `@next-auth/prisma-adapter` (not `@auth/prisma-adapter`) |
 | June 2026 | Confirmed staying on Prisma 5, not upgrading to 7 |
 | June 2026 | Epics defined and sequenced; Reporting kept as standalone epic |
+| July 2026 | Course completion defined (Epic 5, REV-06): all lessons viewed AND all attached quizzes passed |

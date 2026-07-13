@@ -110,7 +110,12 @@ export async function getCourse(id: string) {
     include: {
       sections: {
         orderBy: { order: "asc" },
-        include: { lessons: { orderBy: { order: "asc" } } },
+        include: {
+          lessons: {
+            orderBy: { order: "asc" },
+            include: { quiz: { include: { questions: { orderBy: { order: "asc" } } } } },
+          },
+        },
       },
     },
   });

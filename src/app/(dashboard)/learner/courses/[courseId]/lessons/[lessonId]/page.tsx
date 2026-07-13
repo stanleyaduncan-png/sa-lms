@@ -5,9 +5,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getLessonForLearner } from "@/actions/progress";
+import { getQuizForLearner } from "@/actions/quizzes";
 import VideoPlayer from "./VideoPlayer";
 import DocumentViewer from "./DocumentViewer";
 import ScormPlayer from "./ScormPlayer";
+import QuizPlayer from "./QuizPlayer";
 
 export default async function LessonViewerPage({
   params,
@@ -32,6 +34,8 @@ export default async function LessonViewerPage({
   }
 
   const { lesson, progress } = result;
+  const quizResult = await getQuizForLearner(lessonId);
+  const quizData = "error" in quizResult ? null : quizResult;
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
@@ -54,6 +58,14 @@ export default async function LessonViewerPage({
           progress={progress}
           studentId={session.user.id}
           studentName={session.user.name ?? session.user.email}
+        />
+      )}
+
+      {quizData && (
+        <QuizPlayer
+          quiz={quizData.quiz}
+          attemptCount={quizData.attemptCount}
+          attemptsRemaining={quizData.attemptsRemaining}
         />
       )}
     </main>

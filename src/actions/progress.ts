@@ -8,11 +8,16 @@
 // user id - never fetch or write a Progress/Enrollment purely by an ID
 // supplied by the client.
 //
-// Completion definition (documented per Epic 4 risk #6): v1 defines course
-// completion as 100% of lessons COMPLETE. Epic 5 may add "+ passing
-// assessment" - that would change the trigger condition in
-// recomputeEnrollmentCompletion below, not the Progress model itself, so
-// the door stays open.
+// Completion definition (Epic 5 REV-06, resolves the open question from
+// PROJECT.md §6): a course is complete when ALL lessons are viewed AND ALL
+// attached quizzes are passed - not merely when content is viewed. SCORM
+// lessons can't carry a native quiz (see quizzes.ts createQuiz), so their
+// gate stays exactly what Epic 4 already built: Progress.status only
+// reaches COMPLETE when the SCORM runtime reports "completed"/"passed" -
+// "failed" leaves it IN_PROGRESS, which already blocks completion the same
+// way a failed native quiz does (REV-05), with no extra code needed here.
+// Exported so quizAttempts.ts can also trigger recomputation on a pass -
+// passing the last quiz can be the final missing piece for completion.
 
 import { z } from "zod";
 import { getServerSession } from "next-auth";
@@ -24,20 +29,32 @@ import { courseProgressPercent } from "@/actions/enrollments";
 // TRK-02: video auto-completes at this watched percentage.
 const VIDEO_COMPLETE_THRESHOLD = 90;
 
-async function recomputeEnrollmentCompletion(userId: string, courseId: string) {
+export async function recomputeEnrollmentCompletion(userId: string, courseId: string) {
   const totalLessons = await prisma.lesson.count({ where: { section: { courseId } } });
   if (totalLessons === 0) return;
 
-  const completeCount = await prisma.progress.count({
+  const completeLessons = await prisma.progress.count({
     where: { userId, status: "COMPLETE", lesson: { section: { courseId } } },
   });
+  if (completeLessons < totalLessons) return;
 
-  if (completeCount >= totalLessons) {
-    await prisma.enrollment.updateMany({
-      where: { userId, courseId, completedAt: null },
-      data: { completedAt: new Date() },
+  const quizzes = await prisma.quiz.findMany({
+    where: { lesson: { section: { courseId } } },
+    select: { id: true },
+  });
+  if (quizzes.length > 0) {
+    const passingAttempts = await prisma.quizAttempt.findMany({
+      where: { userId, quizId: { in: quizzes.map((q) => q.id) }, passed: true },
+      select: { quizId: true },
+      distinct: ["quizId"],
     });
+    if (passingAttempts.length < quizzes.length) return;
   }
+
+  await prisma.enrollment.updateMany({
+    where: { userId, courseId, completedAt: null },
+    data: { completedAt: new Date() },
+  });
 }
 
 // Returns the course structure (sections/lessons) annotated with this
@@ -268,8 +285,15 @@ export async function updateScormProgress(input: {
   const existingScormData = (existing?.scormData as Record<string, string> | null) ?? {};
 
   // Map SCORM lesson_status (completed/passed) -> Progress.status = COMPLETE.
-  const status = cmi.lessonStatus && SCORM_COMPLETE_STATUSES.includes(cmi.lessonStatus)
-    ? "COMPLETE"
+  // If this commit reports a lesson_status, it's authoritative - a
+  // "failed" report must knock a previously-COMPLETE row back down
+  // (REV-05), not fall through to the stale prior status. Only preserve
+  // the existing status when this particular commit didn't touch
+  // lesson_status at all (e.g. a suspend_data-only save).
+  const status = cmi.lessonStatus
+    ? SCORM_COMPLETE_STATUSES.includes(cmi.lessonStatus)
+      ? "COMPLETE"
+      : "IN_PROGRESS"
     : existing?.status ?? "IN_PROGRESS";
 
   await prisma.progress.upsert({

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSection, updateSection, deleteSection, createLesson, updateLesson, deleteLesson, reorderLessons } from "@/actions/lessons";
 import { getCourse } from "@/actions/courses";
+import QuizManager from "./QuizManager";
 
 type Course = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
 type Section = Course["sections"][number];
@@ -26,6 +27,7 @@ export default function CourseDetailClient({ course }: { course: Course }) {
   const [newLessonBySection, setNewLessonBySection] = useState<Record<string, ReturnType<typeof emptyLessonForm>>>({});
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [editLesson, setEditLesson] = useState(emptyLessonForm());
+  const [quizManagerLessonId, setQuizManagerLessonId] = useState<string | null>(null);
 
   function lessonForm(sectionId: string) {
     return newLessonBySection[sectionId] ?? emptyLessonForm();
@@ -226,12 +228,23 @@ export default function CourseDetailClient({ course }: { course: Course }) {
                       </>
                     )}
                     {lesson.requiresPriorLesson && <> · requires prior lesson</>}
+                    {lesson.quiz && <> · has quiz</>}
                     <div>
                       <button onClick={() => handleMoveLesson(section, index, -1)} disabled={index === 0}>↑</button>{" "}
                       <button onClick={() => handleMoveLesson(section, index, 1)} disabled={index === section.lessons.length - 1}>↓</button>{" "}
                       <button onClick={() => startEditLesson(lesson)}>Edit</button>{" "}
-                      <button onClick={() => handleDeleteLesson(lesson.id)}>Delete</button>
+                      <button onClick={() => handleDeleteLesson(lesson.id)}>Delete</button>{" "}
+                      {lesson.contentType !== "SCORM" && (
+                        <button
+                          onClick={() =>
+                            setQuizManagerLessonId(quizManagerLessonId === lesson.id ? null : lesson.id)
+                          }
+                        >
+                          {quizManagerLessonId === lesson.id ? "Hide quiz" : "Manage quiz"}
+                        </button>
+                      )}
                     </div>
+                    {quizManagerLessonId === lesson.id && <QuizManager lesson={lesson} />}
                   </div>
                 )}
               </li>

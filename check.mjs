@@ -326,7 +326,32 @@ progressModelBody.includes("scormData")
   ? ok('Progress model has "scormData" field')
   : fail('Progress model missing "scormData" field', "Check prisma/schema.prisma");
 
-// ─── 11. Git sanity ──────────────────────────────────────────────────────────
+// ─── 11. Epic 5 — Reviewing (Assessment) ─────────────────────────────────────
+
+section("Epic 5 — Reviewing (Assessment)");
+
+const epic5Files = [
+  ["src/actions/quizzes.ts",                                                                "Missing quiz authoring server actions (REV-01/02)"],
+  ["src/actions/quizAttempts.ts",                                                            "Missing quiz attempt server actions (REV-03/04)"],
+  ["src/app/(dashboard)/owner/courses/[courseId]/QuizManager.tsx",                           "Missing Owner quiz authoring UI"],
+  ["src/app/(dashboard)/learner/courses/[courseId]/lessons/[lessonId]/QuizPlayer.tsx",       "Missing learner quiz-taking UI"],
+];
+
+for (const [file, hint] of epic5Files) {
+  exists(file) ? ok(file) : fail(file, hint);
+}
+
+const epic5Models = ["Quiz", "QuizQuestion", "QuizAttempt"];
+for (const model of epic5Models) {
+  schema.includes(`model ${model}`)
+    ? ok(`model ${model} still present`)
+    : fail(`model ${model} missing`, "Check prisma/schema.prisma");
+}
+schema.includes("enum QuestionType")
+  ? ok("enum QuestionType still present")
+  : fail("enum QuestionType missing", "Check prisma/schema.prisma");
+
+// ─── 12. Git sanity ──────────────────────────────────────────────────────────
 
 section("Git");
 

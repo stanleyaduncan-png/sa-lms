@@ -3,7 +3,7 @@
 // epics.
 // Run: npx prisma db seed
 
-import { PrismaClient, LessonContentType } from "@prisma/client";
+import { PrismaClient, LessonContentType, QuestionType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -200,6 +200,66 @@ async function main() {
     });
   }
   console.log(`Seeded progress rows for ${acmeLearner.email}`);
+
+  // Epic 5: a short quiz on the Safety Handbook lesson (a DOCUMENT lesson,
+  // not SCORM - see quizzes.ts createQuiz for why SCORM can't carry a
+  // native quiz), so Epic 6 has a gated completion to work with.
+  const handbookLesson = await prisma.lesson.findFirst({
+    where: { sectionId: module1.id, title: "Safety Handbook" },
+  });
+  if (handbookLesson) {
+    let handbookQuiz = await prisma.quiz.findUnique({ where: { lessonId: handbookLesson.id } });
+    if (!handbookQuiz) {
+      handbookQuiz = await prisma.quiz.create({
+        data: { lessonId: handbookLesson.id, passThreshold: 80 },
+      });
+    }
+
+    async function ensureQuestion(
+      quizId: string,
+      data: {
+        text: string;
+        type: QuestionType;
+        options: { id: string; text: string; isCorrect: boolean }[];
+        order: number;
+      }
+    ) {
+      const existing = await prisma.quizQuestion.findFirst({ where: { quizId, text: data.text } });
+      if (!existing) {
+        await prisma.quizQuestion.create({ data: { quizId, ...data } });
+      }
+    }
+
+    await ensureQuestion(handbookQuiz.id, {
+      text: "What should you do first if you notice a safety hazard?",
+      type: "SINGLE_CHOICE",
+      options: [
+        { id: "report", text: "Report it immediately", isCorrect: true },
+        { id: "ignore", text: "Ignore it", isCorrect: false },
+      ],
+      order: 0,
+    });
+    await ensureQuestion(handbookQuiz.id, {
+      text: "All employees must complete safety training annually.",
+      type: "TRUE_FALSE",
+      options: [
+        { id: "true", text: "True", isCorrect: true },
+        { id: "false", text: "False", isCorrect: false },
+      ],
+      order: 1,
+    });
+    await ensureQuestion(handbookQuiz.id, {
+      text: "Which of the following are examples of PPE?",
+      type: "MULTIPLE_CHOICE",
+      options: [
+        { id: "glasses", text: "Safety glasses", isCorrect: true },
+        { id: "gloves", text: "Gloves", isCorrect: true },
+        { id: "sandals", text: "Sandals", isCorrect: false },
+      ],
+      order: 2,
+    });
+    console.log(`Seeded quiz (${handbookQuiz.passThreshold}% pass) on "${handbookLesson.title}"`);
+  }
 }
 
 main()

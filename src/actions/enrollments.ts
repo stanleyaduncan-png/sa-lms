@@ -107,16 +107,36 @@ export async function getOrEnrollInCourse(courseId: string) {
   return { error: "You do not have access to this course" };
 }
 
+// REV-06: completion (and this percentage) requires lessons viewed AND
+// attached assessments passed - not merely content viewed. Quizzes count
+// as their own gradable items alongside lessons so a course with a final
+// quiz can't reach 100% just by watching everything.
 export async function courseProgressPercent(userId: string, courseId: string) {
-  const totalLessons = await prisma.lesson.count({
-    where: { section: { courseId } },
-  });
+  const totalLessons = await prisma.lesson.count({ where: { section: { courseId } } });
   if (totalLessons === 0) return 0;
 
-  const completeCount = await prisma.progress.count({
+  const completeLessons = await prisma.progress.count({
     where: { userId, status: "COMPLETE", lesson: { section: { courseId } } },
   });
-  return Math.round((completeCount / totalLessons) * 100);
+
+  const quizzes = await prisma.quiz.findMany({
+    where: { lesson: { section: { courseId } } },
+    select: { id: true },
+  });
+
+  let passedQuizzes = 0;
+  if (quizzes.length > 0) {
+    const passingAttempts = await prisma.quizAttempt.findMany({
+      where: { userId, quizId: { in: quizzes.map((q) => q.id) }, passed: true },
+      select: { quizId: true },
+      distinct: ["quizId"],
+    });
+    passedQuizzes = passingAttempts.length;
+  }
+
+  const totalItems = totalLessons + quizzes.length;
+  const completeItems = completeLessons + passedQuizzes;
+  return Math.round((completeItems / totalItems) * 100);
 }
 
 // Learner catalog data - strictly scoped to the session user's own
