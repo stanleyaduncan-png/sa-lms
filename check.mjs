@@ -384,7 +384,23 @@ certificateModelBody.includes("@@unique([userId, courseId])")
   ? ok("Certificate model has @@unique([userId, courseId])")
   : fail("Certificate model missing @@unique([userId, courseId])", "Check prisma/schema.prisma");
 
-// ─── 13. Git sanity ──────────────────────────────────────────────────────────
+// ─── 13. Epic 7 — Reporting & Admin Views (final epic) ───────────────────────
+
+section("Epic 7 — Reporting & Admin Views");
+
+const epic7Files = [
+  ["src/actions/reports.ts",                                 "Missing reporting server actions"],
+  ["src/app/(dashboard)/owner/reports/page.tsx",              "Missing Owner reports UI"],
+  ["src/app/(dashboard)/org-admin/reports/page.tsx",          "Missing Org Admin reports UI"],
+  ["src/app/(dashboard)/learner/reports/page.tsx",            "Missing learner reports UI"],
+  ["src/lib/csv.ts",                                          "Missing CSV export helper (formula-injection sanitization)"],
+];
+
+for (const [file, hint] of epic7Files) {
+  exists(file) ? ok(file) : fail(file, hint);
+}
+
+// ─── 14. Git sanity ──────────────────────────────────────────────────────────
 
 section("Git");
 

@@ -13,13 +13,13 @@ export default async function OwnerDashboardPage() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>Owner Dashboard</h1>
-      <p>Placeholder. Cross-org reporting goes here.</p>
       <p>
         <a href="/owner/organizations">Organizations</a> ·{" "}
         <a href="/owner/invitations">Invitations</a> ·{" "}
         <a href="/owner/courses">Courses</a> ·{" "}
         <a href="/owner/progress">Progress</a> ·{" "}
-        <a href="/owner/certificates">Certificates</a>
+        <a href="/owner/certificates">Certificates</a> ·{" "}
+        <a href="/owner/reports">Reports</a>
       </p>
       <ul>
         <li>Name: {session?.user.name}</li>

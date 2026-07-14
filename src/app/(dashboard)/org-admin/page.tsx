@@ -17,11 +17,11 @@ export default async function OrgAdminDashboardPage() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>Org Admin Dashboard</h1>
-      <p>Placeholder. Own-organization learner roster and progress reporting go here.</p>
       <p>
         <a href="/org-admin/invitations">Invitations</a> ·{" "}
         <a href="/org-admin/progress">Progress</a> ·{" "}
-        <a href="/org-admin/certificates">Certificates</a>
+        <a href="/org-admin/certificates">Certificates</a> ·{" "}
+        <a href="/org-admin/reports">Reports</a>
       </p>
       <ul>
         <li>Name: {session?.user.name}</li>

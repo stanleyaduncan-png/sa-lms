@@ -5,8 +5,9 @@
 > way they are, not just *what* they are. The README is for quick
 > orientation; this file is for context and rationale.
 >
-> **Last updated:** June 2026 · BRD sent for external review, stack
-> finalized, epics sequenced. Implementation not yet started.
+> **Last updated:** July 2026 · **v1 complete.** All seven epics
+> (Foundation through Reporting & Admin Views) implemented and verified.
+> `node check.mjs` passes 126/126.
 
 ---
 
@@ -129,15 +130,22 @@ duplicated inside the others).
    6. Certificates (capstone)
 ```
 
-| # | Epic | Depends on | Requirement IDs | Notes |
-|---|---|---|---|---|
-| 1 | Foundation | — | `AUTH-01`–`03`, parts of `DB-*` | Nothing else can start without this |
-| 2 | Access & Invitations | Foundation | `ACC-01`–`10` | Runs in parallel with #3 |
-| 3 | Course Authoring | Foundation | `CRS-01`–`11` | Runs in parallel with #2 |
-| 4 | Tracking & Progress | #2 + #3 | `TRK-01`–`08` | Convergence point — needs both enrolled learners and real lessons to exist |
-| 5 | Reviewing (Assessment) | #4 | `REV-01`–`06` | Quiz attempts are a specialized form of progress tracking |
-| 6 | Certificates | #4 + #5 | `CERT-01`–`06` | Can't evaluate "complete" until tracking + assessment both work |
-| 7 | Reporting & Admin Views | #2, #4, #6 (data sources) | — | **Standalone**, not folded into other epics. Cross-cutting: Org Admin views their org's data, Owner views everything |
+| # | Epic | Depends on | Requirement IDs | Status | Notes |
+|---|---|---|---|---|---|
+| 1 | Foundation | — | `AUTH-01`–`03`, parts of `DB-*` | ✅ Done | Nothing else can start without this |
+| 2 | Access & Invitations | Foundation | `ACC-01`–`10` | ✅ Done | Runs in parallel with #3 |
+| 3 | Course Authoring | Foundation | `CRS-01`–`11` | ✅ Done | Runs in parallel with #2 |
+| 4 | Tracking & Progress | #2 + #3 | `TRK-01`–`08` | ✅ Done | Convergence point — needs both enrolled learners and real lessons to exist |
+| 5 | Reviewing (Assessment) | #4 | `REV-01`–`06` | ✅ Done | Quiz attempts are a specialized form of progress tracking |
+| 6 | Certificates | #4 + #5 | `CERT-01`–`06` | ✅ Done | Can't evaluate "complete" until tracking + assessment both work |
+| 7 | Reporting & Admin Views | #2, #4, #6 (data sources) | — | ✅ Done | **Standalone**, not folded into other epics. Cross-cutting: Org Admin views their org's data, Owner views everything |
+
+**v1 is feature-complete.** All seven epics implemented and verified end
+to end (`node check.mjs`: 126/126). Remaining open items are the
+"Still undecided" stack pieces in §2 (video hosting, SCORM upload/unpack
+pipeline, object storage provider) and the open questions in §6 below —
+none block v1 functionality as built, but matter for a real production
+rollout.
 
 **Decision:** Reporting kept standalone rather than embedded as a
 sub-task in each epic, since it touches data produced by three different
@@ -198,3 +206,5 @@ way?" without digging through chat history.
 | June 2026 | Confirmed staying on Prisma 5, not upgrading to 7 |
 | June 2026 | Epics defined and sequenced; Reporting kept as standalone epic |
 | July 2026 | Course completion defined (Epic 5, REV-06): all lessons viewed AND all attached quizzes passed |
+| July 2026 | Certificates generated on-the-fly (Epic 6): no storage provider chosen yet, so `pdfUrl` is a regenerating route, not a stored file |
+| July 2026 | **v1 complete** — all 7 epics done, `node check.mjs` at 126/126 |

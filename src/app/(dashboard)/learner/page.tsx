@@ -18,7 +18,8 @@ export default async function LearnerDashboardPage() {
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>My Courses</h1>
       <p>
-        <a href="/learner/certificates">My Certificates</a>
+        <a href="/learner/certificates">My Certificates</a> ·{" "}
+        <a href="/learner/reports">My Report</a>
       </p>
       <ul>
         <li>Name: {session?.user.name}</li>
