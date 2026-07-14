@@ -259,6 +259,78 @@ async function main() {
       order: 2,
     });
     console.log(`Seeded quiz (${handbookQuiz.passThreshold}% pass) on "${handbookLesson.title}"`);
+
+    // Epic 6: a fully-completed learner so a Certificate exists on first
+    // run for UI testing, without disturbing acmeLearner's partial-progress
+    // demo data above (kept as one COMPLETE + one IN_PROGRESS on purpose).
+    const certifiedLearner = await prisma.user.upsert({
+      where: { email: "certifiedlearner@lms.local" },
+      update: {},
+      create: {
+        email: "certifiedlearner@lms.local",
+        name: "Certified Learner",
+        passwordHash,
+        role: "LEARNER",
+        organizationId: null,
+      },
+    });
+    console.log(`Seeded Certified Learner account: ${certifiedLearner.email} (${certifiedLearner.id})`);
+
+    const allIntroLessons = await prisma.lesson.findMany({
+      where: { section: { courseId: introCourse.id } },
+    });
+    for (const lesson of allIntroLessons) {
+      await prisma.progress.upsert({
+        where: { userId_lessonId: { userId: certifiedLearner.id, lessonId: lesson.id } },
+        update: { status: "COMPLETE" },
+        create: { userId: certifiedLearner.id, lessonId: lesson.id, status: "COMPLETE" },
+      });
+    }
+
+    const existingAttempt = await prisma.quizAttempt.findFirst({
+      where: { quizId: handbookQuiz.id, userId: certifiedLearner.id },
+    });
+    if (!existingAttempt) {
+      await prisma.quizAttempt.create({
+        data: {
+          quizId: handbookQuiz.id,
+          userId: certifiedLearner.id,
+          score: 100,
+          passed: true,
+          answers: {
+            [(await prisma.quizQuestion.findFirstOrThrow({ where: { quizId: handbookQuiz.id, order: 0 } })).id]: ["report"],
+            [(await prisma.quizQuestion.findFirstOrThrow({ where: { quizId: handbookQuiz.id, order: 1 } })).id]: ["true"],
+            [(await prisma.quizQuestion.findFirstOrThrow({ where: { quizId: handbookQuiz.id, order: 2 } })).id]: ["glasses", "gloves"],
+          },
+        },
+      });
+    }
+
+    await prisma.enrollment.upsert({
+      where: { userId_courseId: { userId: certifiedLearner.id, courseId: introCourse.id } },
+      update: { completedAt: new Date() },
+      create: {
+        userId: certifiedLearner.id,
+        courseId: introCourse.id,
+        source: "INDIVIDUAL_ASSIGNED",
+        completedAt: new Date(),
+      },
+    });
+    console.log(`Enrolled + completed ${certifiedLearner.email} in "${introCourse.title}"`);
+
+    const existingCertificate = await prisma.certificate.findUnique({
+      where: { userId_courseId: { userId: certifiedLearner.id, courseId: introCourse.id } },
+    });
+    if (!existingCertificate) {
+      const certificate = await prisma.certificate.create({
+        data: { userId: certifiedLearner.id, courseId: introCourse.id, pdfUrl: "" },
+      });
+      await prisma.certificate.update({
+        where: { id: certificate.id },
+        data: { pdfUrl: `/api/certificates/${certificate.id}/pdf` },
+      });
+      console.log(`Issued certificate for ${certifiedLearner.email}`);
+    }
   }
 }
 

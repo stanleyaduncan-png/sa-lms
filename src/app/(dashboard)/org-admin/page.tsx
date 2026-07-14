@@ -20,7 +20,8 @@ export default async function OrgAdminDashboardPage() {
       <p>Placeholder. Own-organization learner roster and progress reporting go here.</p>
       <p>
         <a href="/org-admin/invitations">Invitations</a> ·{" "}
-        <a href="/org-admin/progress">Progress</a>
+        <a href="/org-admin/progress">Progress</a> ·{" "}
+        <a href="/org-admin/certificates">Certificates</a>
       </p>
       <ul>
         <li>Name: {session?.user.name}</li>

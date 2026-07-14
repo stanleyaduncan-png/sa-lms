@@ -351,7 +351,40 @@ schema.includes("enum QuestionType")
   ? ok("enum QuestionType still present")
   : fail("enum QuestionType missing", "Check prisma/schema.prisma");
 
-// ─── 12. Git sanity ──────────────────────────────────────────────────────────
+// ─── 12. Epic 6 — Certificates ───────────────────────────────────────────────
+
+section("Epic 6 — Certificates");
+
+const epic6Files = [
+  ["src/actions/certificates.ts",                                        "Missing certificate server actions (CERT-01/02/03/04)"],
+  ["src/lib/certificateTemplate.ts",                                     "Missing certificate template config + PDF generator (CERT-05)"],
+  ["src/app/api/certificates/[certificateId]/pdf/route.ts",              "Missing certificate PDF download route"],
+  ["src/app/(dashboard)/learner/certificates/page.tsx",                  "Missing learner certificates UI (CERT-03)"],
+  ["src/app/(dashboard)/org-admin/certificates/page.tsx",                "Missing Org Admin certificates UI (CERT-04)"],
+  ["src/app/(dashboard)/owner/certificates/page.tsx",                    "Missing Owner certificates UI"],
+];
+
+for (const [file, hint] of epic6Files) {
+  exists(file) ? ok(file) : fail(file, hint);
+}
+
+schema.includes("model Certificate")
+  ? ok("model Certificate still present")
+  : fail("model Certificate missing", "Check prisma/schema.prisma");
+
+const certificateModelMatch = schema.match(/model Certificate \{[^}]*\}/s);
+const certificateModelBody = certificateModelMatch ? certificateModelMatch[0] : "";
+const certificateFields = ["userId", "courseId", "pdfUrl", "issuedAt"];
+for (const field of certificateFields) {
+  certificateModelBody.includes(field)
+    ? ok(`Certificate model has "${field}" field`)
+    : fail(`Certificate model missing "${field}" field`, "Check prisma/schema.prisma");
+}
+certificateModelBody.includes("@@unique([userId, courseId])")
+  ? ok("Certificate model has @@unique([userId, courseId])")
+  : fail("Certificate model missing @@unique([userId, courseId])", "Check prisma/schema.prisma");
+
+// ─── 13. Git sanity ──────────────────────────────────────────────────────────
 
 section("Git");
 

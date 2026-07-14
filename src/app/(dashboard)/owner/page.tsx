@@ -18,7 +18,8 @@ export default async function OwnerDashboardPage() {
         <a href="/owner/organizations">Organizations</a> ·{" "}
         <a href="/owner/invitations">Invitations</a> ·{" "}
         <a href="/owner/courses">Courses</a> ·{" "}
-        <a href="/owner/progress">Progress</a>
+        <a href="/owner/progress">Progress</a> ·{" "}
+        <a href="/owner/certificates">Certificates</a>
       </p>
       <ul>
         <li>Name: {session?.user.name}</li>

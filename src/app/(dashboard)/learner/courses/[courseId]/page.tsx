@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrEnrollInCourse } from "@/actions/enrollments";
 import { getLearnerCourseView } from "@/actions/progress";
+import { getMyCertificates } from "@/actions/certificates";
 
 export default async function LearnerCourseDetailPage({
   params,
@@ -42,7 +43,13 @@ export default async function LearnerCourseDetailPage({
     );
   }
 
-  const { course } = view;
+  const { course, enrollment } = view;
+
+  let certificatePdfUrl: string | null = null;
+  if (enrollment.completedAt) {
+    const certificates = await getMyCertificates();
+    certificatePdfUrl = certificates.find((c) => c.courseId === course.id)?.pdfUrl ?? null;
+  }
 
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
@@ -50,6 +57,17 @@ export default async function LearnerCourseDetailPage({
       <p>
         <a href="/learner">← Back to my courses</a>
       </p>
+      {enrollment.completedAt && (
+        <p style={{ color: "green" }}>
+          Course complete ({new Date(enrollment.completedAt).toLocaleDateString()})
+          {certificatePdfUrl && (
+            <>
+              {" — "}
+              <a href={certificatePdfUrl}>Download certificate</a>
+            </>
+          )}
+        </p>
+      )}
       {course.sections.map((section) => (
         <div key={section.id} style={{ marginTop: "1rem" }}>
           <h2>{section.title}</h2>

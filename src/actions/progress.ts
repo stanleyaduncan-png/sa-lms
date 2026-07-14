@@ -25,6 +25,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { courseProgressPercent } from "@/actions/enrollments";
+import { issueCertificate } from "@/actions/certificates";
 
 // TRK-02: video auto-completes at this watched percentage.
 const VIDEO_COMPLETE_THRESHOLD = 90;
@@ -55,6 +56,12 @@ export async function recomputeEnrollmentCompletion(userId: string, courseId: st
     where: { userId, courseId, completedAt: null },
     data: { completedAt: new Date() },
   });
+
+  // Epic 6 (CERT-01): issuance is wired at this single completion
+  // transition point, not a cron/poll (risk #5) - issueCertificate
+  // re-verifies completedAt itself and is idempotent, so calling it here
+  // even when completedAt was already set on a prior call is harmless.
+  await issueCertificate(userId, courseId);
 }
 
 // Returns the course structure (sections/lessons) annotated with this

@@ -1,6 +1,7 @@
 // Learner dashboard: enrolled courses + course-level progress (TRK-*).
 // Strictly scoped to the session user's own enrollments (getMyEnrollments).
-// Quiz results (REV-*) and certificate downloads (CERT-03) land in later epics.
+// Quiz results (REV-*) land in a future epic; certificates (CERT-03) are
+// at /learner/certificates.
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -16,6 +17,9 @@ export default async function LearnerDashboardPage() {
   return (
     <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
       <h1>My Courses</h1>
+      <p>
+        <a href="/learner/certificates">My Certificates</a>
+      </p>
       <ul>
         <li>Name: {session?.user.name}</li>
         <li>Email: {session?.user.email}</li>
