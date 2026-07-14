@@ -6,6 +6,8 @@
 import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { z } from "zod";
+import AuthShell from "@/components/AuthShell";
+import { btnPrimary, input, errorText, pageHeading } from "@/lib/ui";
 
 const credentialsSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -46,32 +48,34 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Log in</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "320px" }}>
-        <label>
+    <AuthShell>
+      <h1 className={pageHeading}>Log in</h1>
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+        <label className="flex flex-col gap-1 text-sm font-medium text-navy-700">
           Email
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            className={input}
           />
         </label>
-        <label>
+        <label className="flex flex-col gap-1 text-sm font-medium text-navy-700">
           Password
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
+            className={input}
           />
         </label>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={submitting}>
+        {error && <p className={errorText}>{error}</p>}
+        <button type="submit" disabled={submitting} className={btnPrimary}>
           {submitting ? "Logging in..." : "Log in"}
         </button>
       </form>
-    </main>
+    </AuthShell>
   );
 }

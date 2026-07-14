@@ -3,6 +3,8 @@
 
 import { getInvitationStatus } from "@/actions/invitations";
 import AcceptInviteClient from "./AcceptInviteClient";
+import AuthShell from "@/components/AuthShell";
+import { pageHeading } from "@/lib/ui";
 
 export default async function AcceptInvitePage({
   searchParams,
@@ -13,10 +15,10 @@ export default async function AcceptInvitePage({
 
   if (!token) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Invalid invitation</h1>
-        <p>This invitation link is invalid or missing a token.</p>
-      </main>
+      <AuthShell>
+        <h1 className={pageHeading}>Invalid invitation</h1>
+        <p className="mt-4 text-navy-700">This invitation link is invalid or missing a token.</p>
+      </AuthShell>
     );
   }
 
@@ -24,30 +26,30 @@ export default async function AcceptInvitePage({
 
   if (result.status === "not_found" || result.status === "invalid") {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Invalid invitation</h1>
-        <p>This invitation link is invalid. Please contact the person who invited you.</p>
-      </main>
+      <AuthShell>
+        <h1 className={pageHeading}>Invalid invitation</h1>
+        <p className="mt-4 text-navy-700">This invitation link is invalid. Please contact the person who invited you.</p>
+      </AuthShell>
     );
   }
 
   if (result.status === "expired") {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Link expired</h1>
-        <p>
+      <AuthShell>
+        <h1 className={pageHeading}>Link expired</h1>
+        <p className="mt-4 text-navy-700">
           This invitation link has expired. Please contact the person who invited you to
           request a new one.
         </p>
-      </main>
+      </AuthShell>
     );
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Accept Invitation</h1>
-      <p>Setting up an account for {result.email}</p>
+    <AuthShell>
+      <h1 className={pageHeading}>Accept Invitation</h1>
+      <p className="mt-2 mb-6 text-sm text-navy-700">Setting up an account for {result.email}</p>
       <AcceptInviteClient token={token} />
-    </main>
+    </AuthShell>
   );
 }

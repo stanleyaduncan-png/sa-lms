@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCourses } from "@/actions/courses";
 import CoursesClient from "./CoursesClient";
+import DashboardShell from "@/components/DashboardShell";
 
 export default async function OwnerCoursesPage() {
   const session = await getServerSession(authOptions);
@@ -13,12 +14,8 @@ export default async function OwnerCoursesPage() {
   const courses = await getCourses();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Courses</h1>
-      <p>
-        <a href="/owner">← Back to dashboard</a>
-      </p>
+    <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Courses">
       <CoursesClient courses={courses} />
-    </main>
+    </DashboardShell>
   );
 }

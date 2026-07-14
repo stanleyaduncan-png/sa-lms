@@ -9,6 +9,16 @@ import {
   assignOrgAdmin,
   getOrganizationsWithUsage,
 } from "@/actions/organizations";
+import {
+  btnPrimary,
+  btnSecondary,
+  btnTertiary,
+  btnDestructive,
+  input,
+  errorText,
+  sectionHeading,
+  card,
+} from "@/lib/ui";
 
 type Organization = Awaited<ReturnType<typeof getOrganizationsWithUsage>>[number];
 
@@ -85,14 +95,15 @@ export default function OrganizationsClient({
 
   return (
     <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={errorText}>{error}</p>}
 
-      <h2>Create Organization</h2>
-      <form onSubmit={handleCreate} style={{ display: "flex", gap: "0.5rem", maxWidth: "480px" }}>
+      <h2 className={sectionHeading}>Create Organization</h2>
+      <form onSubmit={handleCreate} className="flex max-w-md gap-2">
         <input
           placeholder="Name"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
+          className={input}
         />
         <input
           placeholder="Seat limit"
@@ -100,51 +111,51 @@ export default function OrganizationsClient({
           min={1}
           value={newSeatLimit}
           onChange={(e) => setNewSeatLimit(e.target.value)}
+          className={input}
         />
-        <button type="submit">Create</button>
+        <button type="submit" className={btnPrimary}>Create</button>
       </form>
 
-      <h2>Organizations</h2>
-      {organizations.length === 0 && <p>No organizations yet.</p>}
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <h2 className={sectionHeading}>Organizations</h2>
+      {organizations.length === 0 && <p className="text-navy-700">No organizations yet.</p>}
+      <ul className="grid grid-cols-1 gap-4">
         {organizations.map((org) => (
-          <li
-            key={org.id}
-            style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}
-          >
+          <li key={org.id} className={card}>
             {editingId === org.id ? (
-              <form onSubmit={(e) => handleUpdate(e, org.id)} style={{ display: "flex", gap: "0.5rem" }}>
-                <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+              <form onSubmit={(e) => handleUpdate(e, org.id)} className="flex flex-wrap items-center gap-2">
+                <input value={editName} onChange={(e) => setEditName(e.target.value)} className={input} />
                 <input
                   type="number"
                   min={1}
                   value={editSeatLimit}
                   onChange={(e) => setEditSeatLimit(e.target.value)}
+                  className={input}
                 />
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditingId(null)}>
+                <button type="submit" className={btnPrimary}>Save</button>
+                <button type="button" onClick={() => setEditingId(null)} className={btnTertiary}>
                   Cancel
                 </button>
               </form>
             ) : (
               <>
-                <strong>{org.name}</strong> — {org.isActive ? "Active" : "Deactivated"}
-                <div>Seats: {org.seatsUsed} / {org.seatLimit}</div>
-                <div>
+                <strong className="text-navy-900">{org.name}</strong>{" "}
+                <span className="text-sm text-navy-600">— {org.isActive ? "Active" : "Deactivated"}</span>
+                <div className="mt-1 text-sm text-navy-700">Seats: {org.seatsUsed} / {org.seatLimit}</div>
+                <div className="mt-1 text-sm text-navy-700">
                   Org Admin(s):{" "}
                   {org.admins.length > 0
                     ? org.admins.map((a) => a.email).join(", ")
                     : "none assigned"}
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
-                  <button onClick={() => startEdit(org)}>Edit</button>{" "}
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => startEdit(org)} className={btnTertiary}>Edit</button>
                   {org.isActive && (
-                    <button onClick={() => handleDeactivate(org.id)}>Deactivate</button>
+                    <button onClick={() => handleDeactivate(org.id)} className={btnDestructive}>Deactivate</button>
                   )}
                 </div>
                 <form
                   onSubmit={(e) => handleAssignAdmin(e, org.id)}
-                  style={{ marginTop: "0.5rem", display: "flex", gap: "0.5rem" }}
+                  className="mt-3 flex gap-2"
                 >
                   <input
                     placeholder="Assign Org Admin by email"
@@ -153,8 +164,9 @@ export default function OrganizationsClient({
                     onChange={(e) =>
                       setAdminEmailByOrg((prev) => ({ ...prev, [org.id]: e.target.value }))
                     }
+                    className={input}
                   />
-                  <button type="submit">Assign Org Admin</button>
+                  <button type="submit" className={btnSecondary}>Assign Org Admin</button>
                 </form>
               </>
             )}

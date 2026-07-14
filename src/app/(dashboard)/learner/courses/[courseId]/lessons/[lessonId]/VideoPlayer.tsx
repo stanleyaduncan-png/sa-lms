@@ -56,7 +56,7 @@ export default function VideoPlayer({
   }
 
   if (!contentUrl) {
-    return <p>No video URL set for this lesson.</p>;
+    return <p className="text-navy-700">No video URL set for this lesson.</p>;
   }
 
   return (
@@ -64,7 +64,7 @@ export default function VideoPlayer({
       ref={videoRef}
       src={contentUrl}
       controls
-      style={{ maxWidth: "640px", width: "100%" }}
+      className="w-full max-w-2xl rounded-lg border border-navy-100"
       onLoadedMetadata={(e) => applyResume(e.currentTarget)}
       onTimeUpdate={(e) => {
         const now = e.currentTarget.currentTime;

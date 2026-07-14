@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { z } from "zod";
 import { acceptInvitation } from "@/actions/invitations";
+import { btnPrimary, input, errorText } from "@/lib/ui";
 
 const formSchema = z
   .object({
@@ -58,31 +59,33 @@ export default function AcceptInviteClient({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "320px" }}>
-      <label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy-700">
         Name
-        <input value={name} onChange={(e) => setName(e.target.value)} />
+        <input value={name} onChange={(e) => setName(e.target.value)} className={input} />
       </label>
-      <label>
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy-700">
         Password
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
+          className={input}
         />
       </label>
-      <label>
+      <label className="flex flex-col gap-1 text-sm font-medium text-navy-700">
         Confirm password
         <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           autoComplete="new-password"
+          className={input}
         />
       </label>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <button type="submit" disabled={submitting}>
+      {error && <p className={errorText}>{error}</p>}
+      <button type="submit" disabled={submitting} className={btnPrimary}>
         {submitting ? "Creating account..." : "Set password & continue"}
       </button>
     </form>

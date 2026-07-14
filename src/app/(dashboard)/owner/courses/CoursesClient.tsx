@@ -3,6 +3,16 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createCourse, updateCourse, archiveCourse, getCourses } from "@/actions/courses";
+import {
+  btnPrimary,
+  btnTertiary,
+  btnDestructive,
+  input,
+  errorText,
+  sectionHeading,
+  card,
+  link,
+} from "@/lib/ui";
 
 type Course = Awaited<ReturnType<typeof getCourses>>[number];
 
@@ -78,81 +88,86 @@ export default function CoursesClient({ courses }: { courses: Course[] }) {
 
   return (
     <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={errorText}>{error}</p>}
 
-      <h2>Create Course</h2>
-      <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "480px" }}>
+      <h2 className={sectionHeading}>Create Course</h2>
+      <form onSubmit={handleCreate} className="flex max-w-md flex-col gap-2">
         <input
           placeholder="Title"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
+          className={input}
         />
         <textarea
           placeholder="Description"
           value={newDescription}
           onChange={(e) => setNewDescription(e.target.value)}
+          className={input}
         />
         <input
           placeholder="Thumbnail URL (optional)"
           value={newThumbnailUrl}
           onChange={(e) => setNewThumbnailUrl(e.target.value)}
+          className={input}
         />
-        <button type="submit">Create</button>
+        <button type="submit" className={`${btnPrimary} self-start`}>Create</button>
       </form>
 
-      <h2>Courses</h2>
-      {courses.length === 0 && <p>No courses yet.</p>}
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <h2 className={sectionHeading}>Courses</h2>
+      {courses.length === 0 && <p className="text-navy-700">No courses yet.</p>}
+      <ul className="grid grid-cols-1 gap-4">
         {courses.map((course) => (
-          <li
-            key={course.id}
-            style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}
-          >
+          <li key={course.id} className={card}>
             {editingId === course.id ? (
               <form
                 onSubmit={(e) => handleUpdate(e, course.id)}
-                style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "480px" }}
+                className="flex max-w-md flex-col gap-2"
               >
-                <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className={input} />
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
+                  className={input}
                 />
                 <input
                   placeholder="Thumbnail URL"
                   value={editThumbnailUrl}
                   onChange={(e) => setEditThumbnailUrl(e.target.value)}
+                  className={input}
                 />
-                <label>
+                <label className="text-sm text-navy-700">
                   Status:{" "}
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as "DRAFT" | "PUBLISHED")}
+                    className="rounded-md border border-navy-300 px-2 py-1 text-sm"
                   >
                     <option value="DRAFT">DRAFT</option>
                     <option value="PUBLISHED">PUBLISHED</option>
                   </select>
                 </label>
-                <div>
-                  <button type="submit">Save</button>{" "}
-                  <button type="button" onClick={() => setEditingId(null)}>
+                <div className="flex gap-2">
+                  <button type="submit" className={btnPrimary}>Save</button>
+                  <button type="button" onClick={() => setEditingId(null)} className={btnTertiary}>
                     Cancel
                   </button>
                 </div>
               </form>
             ) : (
               <>
-                <strong>{course.title}</strong> — {course.status}
-                <div>Sections: {course._count.sections}</div>
-                <div>Created: {new Date(course.createdAt).toLocaleDateString()}</div>
-                <div style={{ marginTop: "0.5rem" }}>
-                  <a href={`/owner/courses/${course.id}`}>Manage content</a>{" "}
-                  · <a href={`/owner/courses/${course.id}/grants`}>Grants</a>
+                <strong className="text-navy-900">{course.title}</strong>{" "}
+                <span className="text-sm text-navy-600">— {course.status}</span>
+                <div className="mt-1 text-sm text-navy-700">Sections: {course._count.sections}</div>
+                <div className="mt-1 text-sm text-navy-700">Created: {new Date(course.createdAt).toLocaleDateString()}</div>
+                <div className="mt-2">
+                  <a href={`/owner/courses/${course.id}`} className={link}>Manage content</a>{" "}
+                  <span className="text-navy-300">·</span>{" "}
+                  <a href={`/owner/courses/${course.id}/grants`} className={link}>Grants</a>
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
-                  <button onClick={() => startEdit(course)}>Edit</button>{" "}
+                <div className="mt-3 flex gap-2">
+                  <button onClick={() => startEdit(course)} className={btnTertiary}>Edit</button>
                   {course.status !== "ARCHIVED" && (
-                    <button onClick={() => handleArchive(course.id, course.title)}>Archive</button>
+                    <button onClick={() => handleArchive(course.id, course.title)} className={btnDestructive}>Archive</button>
                   )}
                 </div>
               </>

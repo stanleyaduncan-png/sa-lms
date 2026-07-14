@@ -4,6 +4,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getMyCertificates } from "@/actions/certificates";
+import DashboardShell from "@/components/DashboardShell";
+import { card, link } from "@/lib/ui";
 
 export default async function LearnerCertificatesPage() {
   const session = await getServerSession(authOptions);
@@ -12,21 +14,21 @@ export default async function LearnerCertificatesPage() {
   const certificates = await getMyCertificates();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>My Certificates</h1>
-      <p>
-        <a href="/learner">← Back to my courses</a>
-      </p>
-      {certificates.length === 0 && <p>No certificates yet — complete a course to earn one.</p>}
-      <ul style={{ listStyle: "none", padding: 0 }}>
+    <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title="My Certificates">
+      {certificates.length === 0 && (
+        <p className="text-navy-700">No certificates yet — complete a course to earn one.</p>
+      )}
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {certificates.map((cert) => (
-          <li key={cert.id} style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}>
-            <strong>{cert.course.title}</strong>
-            <div>Issued: {new Date(cert.issuedAt).toLocaleDateString()}</div>
-            <a href={cert.pdfUrl}>Download PDF</a>
+          <li key={cert.id} className={card}>
+            <strong className="text-navy-900">{cert.course.title}</strong>
+            <div className="mt-1 text-sm text-navy-700">
+              Issued: {new Date(cert.issuedAt).toLocaleDateString()}
+            </div>
+            <a href={cert.pdfUrl} className={`${link} mt-2 inline-block`}>Download PDF</a>
           </li>
         ))}
       </ul>
-    </main>
+    </DashboardShell>
   );
 }

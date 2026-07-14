@@ -10,6 +10,8 @@ import {
   exportOwnerReportCsv,
 } from "@/actions/reports";
 import CsvExportButton from "@/components/CsvExportButton";
+import DashboardShell from "@/components/DashboardShell";
+import { tableWrap, table, tableHeadRow, tableHeadCell, tableRow, tableCell, sectionHeading } from "@/lib/ui";
 
 export default async function OwnerReportsPage() {
   const session = await getServerSession(authOptions);
@@ -22,97 +24,105 @@ export default async function OwnerReportsPage() {
   ]);
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Reports</h1>
-      <p>
-        <a href="/owner">← Back to dashboard</a>
-      </p>
-      <p>
-        <CsvExportButton label="Export CSV" action={exportOwnerReportCsv} filename="owner-report.csv" />
-      </p>
+    <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Reports">
+      <CsvExportButton label="Export CSV" action={exportOwnerReportCsv} filename="owner-report.csv" />
 
-      <h2>Organizations</h2>
-      {orgSummaries.length === 0 && <p>No organizations yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Organization</th>
-            <th>Status</th>
-            <th>Seats</th>
-            <th>Learners</th>
-            <th>Enrollments</th>
-            <th>Completion Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orgSummaries.map((org) => (
-            <tr key={org.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>{org.name}</td>
-              <td>{org.isActive ? "Active" : "Deactivated"}</td>
-              <td>
-                {org.seatsUsed} / {org.seatLimit}
-              </td>
-              <td>{org.learnerCount}</td>
-              <td>
-                {org.completedEnrollments} / {org.totalEnrollments}
-              </td>
-              <td>{org.completionRate}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2 className={sectionHeading}>Organizations</h2>
+      {orgSummaries.length === 0 && <p className="text-navy-700">No organizations yet.</p>}
+      {orgSummaries.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Organization</th>
+                <th className={tableHeadCell}>Status</th>
+                <th className={tableHeadCell}>Seats</th>
+                <th className={tableHeadCell}>Learners</th>
+                <th className={tableHeadCell}>Enrollments</th>
+                <th className={tableHeadCell}>Completion Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orgSummaries.map((org) => (
+                <tr key={org.id} className={tableRow}>
+                  <td className={tableCell}>{org.name}</td>
+                  <td className={tableCell}>{org.isActive ? "Active" : "Deactivated"}</td>
+                  <td className={tableCell}>
+                    {org.seatsUsed} / {org.seatLimit}
+                  </td>
+                  <td className={tableCell}>{org.learnerCount}</td>
+                  <td className={tableCell}>
+                    {org.completedEnrollments} / {org.totalEnrollments}
+                  </td>
+                  <td className={tableCell}>{org.completionRate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <h2>Courses</h2>
-      {courseSummaries.length === 0 && <p>No courses yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Course</th>
-            <th>Status</th>
-            <th>Enrollments</th>
-            <th>Completion Rate</th>
-            <th>Avg Quiz Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courseSummaries.map((course) => (
-            <tr key={course.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>{course.title}</td>
-              <td>{course.status}</td>
-              <td>
-                {course.completedEnrollments} / {course.totalEnrollments}
-              </td>
-              <td>{course.completionRate}%</td>
-              <td>{course.averageQuizScore !== null ? `${course.averageQuizScore}%` : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2 className={sectionHeading}>Courses</h2>
+      {courseSummaries.length === 0 && <p className="text-navy-700">No courses yet.</p>}
+      {courseSummaries.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Course</th>
+                <th className={tableHeadCell}>Status</th>
+                <th className={tableHeadCell}>Enrollments</th>
+                <th className={tableHeadCell}>Completion Rate</th>
+                <th className={tableHeadCell}>Avg Quiz Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courseSummaries.map((course) => (
+                <tr key={course.id} className={tableRow}>
+                  <td className={tableCell}>{course.title}</td>
+                  <td className={tableCell}>{course.status}</td>
+                  <td className={tableCell}>
+                    {course.completedEnrollments} / {course.totalEnrollments}
+                  </td>
+                  <td className={tableCell}>{course.completionRate}%</td>
+                  <td className={tableCell}>
+                    {course.averageQuizScore !== null ? `${course.averageQuizScore}%` : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <h2>Individual Learners</h2>
-      {individualLearners.length === 0 && <p>No individual learners yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Learner</th>
-            <th>Enrollments</th>
-            <th>Completion Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {individualLearners.map((learner) => (
-            <tr key={learner.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>
-                {learner.name} ({learner.email})
-              </td>
-              <td>
-                {learner.completedEnrollments} / {learner.totalEnrollments}
-              </td>
-              <td>{learner.completionRate}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+      <h2 className={sectionHeading}>Individual Learners</h2>
+      {individualLearners.length === 0 && <p className="text-navy-700">No individual learners yet.</p>}
+      {individualLearners.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Learner</th>
+                <th className={tableHeadCell}>Enrollments</th>
+                <th className={tableHeadCell}>Completion Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {individualLearners.map((learner) => (
+                <tr key={learner.id} className={tableRow}>
+                  <td className={tableCell}>
+                    {learner.name} ({learner.email})
+                  </td>
+                  <td className={tableCell}>
+                    {learner.completedEnrollments} / {learner.totalEnrollments}
+                  </td>
+                  <td className={tableCell}>{learner.completionRate}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getAllInvitations } from "@/actions/invitations";
 import InvitationsClient from "./InvitationsClient";
+import DashboardShell from "@/components/DashboardShell";
 
 export default async function OwnerInvitationsPage() {
   const session = await getServerSession(authOptions);
@@ -13,12 +14,8 @@ export default async function OwnerInvitationsPage() {
   const invitations = await getAllInvitations();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Invitations</h1>
-      <p>
-        <a href="/owner">← Back to dashboard</a>
-      </p>
+    <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Invitations">
       <InvitationsClient invitations={invitations} />
-    </main>
+    </DashboardShell>
   );
 }

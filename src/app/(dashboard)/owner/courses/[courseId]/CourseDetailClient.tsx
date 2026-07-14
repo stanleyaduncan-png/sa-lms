@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation";
 import { createSection, updateSection, deleteSection, createLesson, updateLesson, deleteLesson, reorderLessons } from "@/actions/lessons";
 import { getCourse } from "@/actions/courses";
 import QuizManager from "./QuizManager";
+import { btnPrimary, btnTertiary, btnDestructive, input, errorText, sectionHeading, card, link } from "@/lib/ui";
 
 type Course = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
 type Section = Course["sections"][number];
 type Lesson = Section["lessons"][number];
 
 const CONTENT_TYPES = ["VIDEO", "DOCUMENT", "SCORM"] as const;
+
+const selectClass = "rounded-md border border-navy-300 px-2 py-2 text-sm text-navy-900 focus:outline-none focus:ring-2 focus:ring-gold-500";
+const iconBtn = "inline-flex h-8 w-8 items-center justify-center rounded-md border border-navy-300 text-navy-900 hover:bg-navy-50 disabled:cursor-not-allowed disabled:opacity-40";
 
 function emptyLessonForm() {
   return { title: "", contentType: "VIDEO" as (typeof CONTENT_TYPES)[number], contentUrl: "", requiresPriorLesson: false };
@@ -150,51 +154,54 @@ export default function CourseDetailClient({ course }: { course: Course }) {
 
   return (
     <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={errorText}>{error}</p>}
 
-      <h2>Add Section</h2>
-      <form onSubmit={handleAddSection} style={{ display: "flex", gap: "0.5rem", maxWidth: "480px" }}>
+      <h2 className={sectionHeading}>Add Section</h2>
+      <form onSubmit={handleAddSection} className="flex max-w-md gap-2">
         <input
           placeholder="Section title"
           value={newSectionTitle}
           onChange={(e) => setNewSectionTitle(e.target.value)}
+          className={input}
         />
-        <button type="submit">Add Section</button>
+        <button type="submit" className={btnPrimary}>Add Section</button>
       </form>
 
-      {course.sections.length === 0 && <p>No sections yet.</p>}
+      {course.sections.length === 0 && <p className="mt-4 text-navy-700">No sections yet.</p>}
 
       {course.sections.map((section) => (
-        <div key={section.id} style={{ border: "1px solid #ccc", padding: "1rem", marginTop: "1rem" }}>
+        <div key={section.id} className={`${card} mt-4`}>
           {editingSectionId === section.id ? (
-            <form onSubmit={(e) => handleUpdateSection(e, section)} style={{ display: "flex", gap: "0.5rem" }}>
-              <input value={editSectionTitle} onChange={(e) => setEditSectionTitle(e.target.value)} />
-              <button type="submit">Save</button>
-              <button type="button" onClick={() => setEditingSectionId(null)}>Cancel</button>
+            <form onSubmit={(e) => handleUpdateSection(e, section)} className="flex gap-2">
+              <input value={editSectionTitle} onChange={(e) => setEditSectionTitle(e.target.value)} className={input} />
+              <button type="submit" className={btnPrimary}>Save</button>
+              <button type="button" onClick={() => setEditingSectionId(null)} className={btnTertiary}>Cancel</button>
             </form>
           ) : (
-            <div>
-              <strong>{section.title}</strong>{" "}
-              <button onClick={() => startEditSection(section)}>Edit</button>{" "}
-              <button onClick={() => handleDeleteSection(section.id)}>Delete Section</button>
+            <div className="flex items-center gap-2">
+              <strong className="text-navy-900">{section.title}</strong>
+              <button onClick={() => startEditSection(section)} className={btnTertiary}>Edit</button>
+              <button onClick={() => handleDeleteSection(section.id)} className={btnDestructive}>Delete Section</button>
             </div>
           )}
 
-          <ul style={{ listStyle: "none", padding: 0, marginTop: "0.5rem" }}>
+          <ul className="mt-2 divide-y divide-navy-100">
             {section.lessons.map((lesson, index) => (
-              <li key={lesson.id} style={{ borderTop: "1px solid #eee", padding: "0.5rem 0" }}>
+              <li key={lesson.id} className="py-2">
                 {editingLessonId === lesson.id ? (
                   <form
                     onSubmit={(e) => handleUpdateLesson(e, lesson)}
-                    style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "480px" }}
+                    className="flex max-w-md flex-col gap-2"
                   >
                     <input
                       value={editLesson.title}
                       onChange={(e) => setEditLesson((f) => ({ ...f, title: e.target.value }))}
+                      className={input}
                     />
                     <select
                       value={editLesson.contentType}
                       onChange={(e) => setEditLesson((f) => ({ ...f, contentType: e.target.value as (typeof CONTENT_TYPES)[number] }))}
+                      className={selectClass}
                     >
                       {CONTENT_TYPES.map((ct) => (
                         <option key={ct} value={ct}>{ct}</option>
@@ -204,41 +211,44 @@ export default function CourseDetailClient({ course }: { course: Course }) {
                       placeholder="Content URL"
                       value={editLesson.contentUrl}
                       onChange={(e) => setEditLesson((f) => ({ ...f, contentUrl: e.target.value }))}
+                      className={input}
                     />
-                    <label>
+                    <label className="flex items-center gap-2 text-sm text-navy-700">
                       <input
                         type="checkbox"
                         checked={editLesson.requiresPriorLesson}
                         onChange={(e) => setEditLesson((f) => ({ ...f, requiresPriorLesson: e.target.checked }))}
-                      />{" "}
+                      />
                       Requires prior lesson
                     </label>
-                    <div>
-                      <button type="submit">Save</button>{" "}
-                      <button type="button" onClick={() => setEditingLessonId(null)}>Cancel</button>
+                    <div className="flex gap-2">
+                      <button type="submit" className={btnPrimary}>Save</button>
+                      <button type="button" onClick={() => setEditingLessonId(null)} className={btnTertiary}>Cancel</button>
                     </div>
                   </form>
                 ) : (
                   <div>
-                    <strong>{lesson.title}</strong> — [{lesson.contentType}]
+                    <strong className="text-navy-900">{lesson.title}</strong>{" "}
+                    <span className="text-sm text-navy-600">— [{lesson.contentType}]</span>
                     {lesson.contentUrl && (
                       <>
                         {" "}
-                        · <a href={lesson.contentUrl} target="_blank" rel="noreferrer">{lesson.contentUrl}</a>
+                        · <a href={lesson.contentUrl} target="_blank" rel="noreferrer" className={link}>{lesson.contentUrl}</a>
                       </>
                     )}
-                    {lesson.requiresPriorLesson && <> · requires prior lesson</>}
-                    {lesson.quiz && <> · has quiz</>}
-                    <div>
-                      <button onClick={() => handleMoveLesson(section, index, -1)} disabled={index === 0}>↑</button>{" "}
-                      <button onClick={() => handleMoveLesson(section, index, 1)} disabled={index === section.lessons.length - 1}>↓</button>{" "}
-                      <button onClick={() => startEditLesson(lesson)}>Edit</button>{" "}
-                      <button onClick={() => handleDeleteLesson(lesson.id)}>Delete</button>{" "}
+                    {lesson.requiresPriorLesson && <span className="text-sm text-navy-600"> · requires prior lesson</span>}
+                    {lesson.quiz && <span className="text-sm text-navy-600"> · has quiz</span>}
+                    <div className="mt-2 flex gap-2">
+                      <button onClick={() => handleMoveLesson(section, index, -1)} disabled={index === 0} className={iconBtn}>↑</button>
+                      <button onClick={() => handleMoveLesson(section, index, 1)} disabled={index === section.lessons.length - 1} className={iconBtn}>↓</button>
+                      <button onClick={() => startEditLesson(lesson)} className={btnTertiary}>Edit</button>
+                      <button onClick={() => handleDeleteLesson(lesson.id)} className={btnDestructive}>Delete</button>
                       {lesson.contentType !== "SCORM" && (
                         <button
                           onClick={() =>
                             setQuizManagerLessonId(quizManagerLessonId === lesson.id ? null : lesson.id)
                           }
+                          className={btnTertiary}
                         >
                           {quizManagerLessonId === lesson.id ? "Hide quiz" : "Manage quiz"}
                         </button>
@@ -253,16 +263,18 @@ export default function CourseDetailClient({ course }: { course: Course }) {
 
           <form
             onSubmit={(e) => handleAddLesson(e, section)}
-            style={{ display: "flex", flexDirection: "column", gap: "0.5rem", maxWidth: "480px", marginTop: "0.5rem" }}
+            className="mt-2 flex max-w-md flex-col gap-2"
           >
             <input
               placeholder="Lesson title"
               value={lessonForm(section.id).title}
               onChange={(e) => setLessonForm(section.id, { title: e.target.value })}
+              className={input}
             />
             <select
               value={lessonForm(section.id).contentType}
               onChange={(e) => setLessonForm(section.id, { contentType: e.target.value as (typeof CONTENT_TYPES)[number] })}
+              className={selectClass}
             >
               {CONTENT_TYPES.map((ct) => (
                 <option key={ct} value={ct}>{ct}</option>
@@ -272,16 +284,17 @@ export default function CourseDetailClient({ course }: { course: Course }) {
               placeholder="Content URL"
               value={lessonForm(section.id).contentUrl}
               onChange={(e) => setLessonForm(section.id, { contentUrl: e.target.value })}
+              className={input}
             />
-            <label>
+            <label className="flex items-center gap-2 text-sm text-navy-700">
               <input
                 type="checkbox"
                 checked={lessonForm(section.id).requiresPriorLesson}
                 onChange={(e) => setLessonForm(section.id, { requiresPriorLesson: e.target.checked })}
-              />{" "}
+              />
               Requires prior lesson
             </label>
-            <button type="submit">Add Lesson</button>
+            <button type="submit" className={`${btnPrimary} self-start`}>Add Lesson</button>
           </form>
         </div>
       ))}

@@ -3,9 +3,12 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { grantCourseToOrg, revokeCourseFromOrg, getGrantsForCourse, getActiveOrganizations } from "@/actions/courseGrants";
+import { btnPrimary, btnDestructive, errorText, sectionHeading } from "@/lib/ui";
 
 type Grant = Awaited<ReturnType<typeof getGrantsForCourse>>[number];
 type Organization = Awaited<ReturnType<typeof getActiveOrganizations>>[number];
+
+const selectClass = "rounded-md border border-navy-300 px-3 py-2 text-sm text-navy-900 focus:outline-none focus:ring-2 focus:ring-gold-500 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function GrantsClient({
   courseId,
@@ -55,37 +58,38 @@ export default function GrantsClient({
 
   return (
     <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={errorText}>{error}</p>}
       {!canGrant && (
-        <p style={{ color: "red" }}>
+        <p className={errorText}>
           Only published courses can be granted to an organization. Publish this course first.
         </p>
       )}
 
-      <h2>Grant to Organization</h2>
-      <form onSubmit={handleGrant} style={{ display: "flex", gap: "0.5rem", maxWidth: "480px" }}>
+      <h2 className={sectionHeading}>Grant to Organization</h2>
+      <form onSubmit={handleGrant} className="flex max-w-md gap-2">
         <select
           value={selectedOrgId}
           onChange={(e) => setSelectedOrgId(e.target.value)}
           disabled={!canGrant || availableOrgs.length === 0}
+          className={selectClass}
         >
           <option value="">Select an organization…</option>
           {availableOrgs.map((org) => (
             <option key={org.id} value={org.id}>{org.name}</option>
           ))}
         </select>
-        <button type="submit" disabled={!canGrant || availableOrgs.length === 0}>
+        <button type="submit" disabled={!canGrant || availableOrgs.length === 0} className={btnPrimary}>
           Grant
         </button>
       </form>
 
-      <h2>Granted Organizations</h2>
-      {grants.length === 0 && <p>Not granted to any organization yet.</p>}
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <h2 className={sectionHeading}>Granted Organizations</h2>
+      {grants.length === 0 && <p className="text-navy-700">Not granted to any organization yet.</p>}
+      <ul className="divide-y divide-navy-100">
         {grants.map((grant) => (
-          <li key={grant.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
-            {grant.organization.name}{" "}
-            <button onClick={() => handleRevoke(grant.organizationId)}>Revoke</button>
+          <li key={grant.id} className="flex items-center justify-between py-2 text-sm text-navy-900">
+            {grant.organization.name}
+            <button onClick={() => handleRevoke(grant.organizationId)} className={btnDestructive}>Revoke</button>
           </li>
         ))}
       </ul>

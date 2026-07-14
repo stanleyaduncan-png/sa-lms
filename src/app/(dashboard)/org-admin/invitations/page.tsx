@@ -9,6 +9,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgInvitations } from "@/actions/invitations";
 import OrgAdminInvitationsClient from "./OrgAdminInvitationsClient";
+import DashboardShell from "@/components/DashboardShell";
+import { link } from "@/lib/ui";
 
 export default async function OrgAdminInvitationsPage() {
   const session = await getServerSession(authOptions);
@@ -18,25 +20,25 @@ export default async function OrgAdminInvitationsPage() {
     // OWNER can also reach this route per middleware, but has no own-org
     // scope to manage invitations for - point them at the org-scoped view.
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Invitations</h1>
-        <p>This view is scoped to a single organization&apos;s Org Admin.</p>
+      <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Invitations">
+        <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/invitations">Go to Owner invitations</a>
+          <a href="/owner/invitations" className={link}>Go to Owner invitations</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
   const { invitations, organization, seatsUsed } = await getOrgInvitations();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Invitations — {organization.name}</h1>
-      <p>
-        <a href="/org-admin">← Back to dashboard</a>
-      </p>
-      <p>
+    <DashboardShell
+      role="ORG_ADMIN"
+      userName={session?.user.name}
+      userEmail={session?.user.email}
+      title={`Invitations — ${organization.name}`}
+    >
+      <p className="mb-6 text-sm font-medium text-navy-700">
         Seats used: {seatsUsed} / {organization.seatLimit}
       </p>
       <OrgAdminInvitationsClient
@@ -44,6 +46,6 @@ export default async function OrgAdminInvitationsPage() {
         seatsUsed={seatsUsed}
         seatLimit={organization.seatLimit}
       />
-    </main>
+    </DashboardShell>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { btnSecondary } from "@/lib/ui";
 
 export default function CsvExportButton({
   label,
@@ -28,7 +29,7 @@ export default function CsvExportButton({
   }
 
   return (
-    <button onClick={handleClick} disabled={loading}>
+    <button onClick={handleClick} disabled={loading} className={`${btnSecondary} mb-6`}>
       {loading ? "Exporting..." : label}
     </button>
   );

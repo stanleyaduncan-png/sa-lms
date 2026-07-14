@@ -5,9 +5,9 @@
 > way they are, not just *what* they are. The README is for quick
 > orientation; this file is for context and rationale.
 >
-> **Last updated:** July 2026 · **v1 complete.** All seven epics
-> (Foundation through Reporting & Admin Views) implemented and verified.
-> `node check.mjs` passes 126/126.
+> **Last updated:** July 2026 · **v1 complete + branded.** All seven
+> functional epics plus Epic 8 (Branding & Theme, SHEQ Partner identity)
+> implemented and verified. `node check.mjs` passes 138/138.
 
 ---
 
@@ -46,6 +46,7 @@ there once review feedback is incorporated).
 | Auth | **Auth.js (NextAuth v4)**, credentials provider | `@next-auth/prisma-adapter` (v4-compatible) — not `@auth/prisma-adapter`, which targets v5 |
 | PDF generation | pdf-lib | For certificates (`CERT-01`) |
 | Validation | Zod | |
+| CSS | **Tailwind CSS 3** | Added in Epic 8 (Branding & Theme) — the app had zero CSS framework/build step before this; Tailwind 3 (not 4) chosen for stability, matching the "don't chase the newest major version without a reason" precedent set for Prisma. Not a component library (MUI/Chakra remain out of scope) |
 | CI | GitHub Actions | Runs build + lint + migrations against a real Postgres service container |
 
 **Still undecided** (flag during technical design, don't assume):
@@ -139,11 +140,14 @@ duplicated inside the others).
 | 5 | Reviewing (Assessment) | #4 | `REV-01`–`06` | ✅ Done | Quiz attempts are a specialized form of progress tracking |
 | 6 | Certificates | #4 + #5 | `CERT-01`–`06` | ✅ Done | Can't evaluate "complete" until tracking + assessment both work |
 | 7 | Reporting & Admin Views | #2, #4, #6 (data sources) | — | ✅ Done | **Standalone**, not folded into other epics. Cross-cutting: Org Admin views their org's data, Owner views everything |
+| 8 | Branding & Theme | #1–#7 (themes existing screens) | — | ✅ Done | Presentation-only refactor. SHEQ Partner navy/gold identity across every screen, the certificate PDF, and the invitation email. Zero behavior changes |
 
-**v1 is feature-complete.** All seven epics implemented and verified end
-to end (`node check.mjs`: 126/126). Remaining open items are the
-"Still undecided" stack pieces in §2 (video hosting, SCORM upload/unpack
-pipeline, object storage provider) and the open questions in §6 below —
+**v1 is feature-complete and branded.** All seven functional epics plus
+Epic 8 implemented and verified end to end (`node check.mjs`: 138/138).
+Remaining open items are the "Still undecided" stack pieces in §2 (video
+hosting, SCORM upload/unpack pipeline, object storage provider), the open
+questions in §6 below, and the real SHEQ Partner logo SVG (Epic 8 shipped
+with a text-based fallback lockup — see `src/components/BrandLogo.tsx`) —
 none block v1 functionality as built, but matter for a real production
 rollout.
 
@@ -208,3 +212,5 @@ way?" without digging through chat history.
 | July 2026 | Course completion defined (Epic 5, REV-06): all lessons viewed AND all attached quizzes passed |
 | July 2026 | Certificates generated on-the-fly (Epic 6): no storage provider chosen yet, so `pdfUrl` is a regenerating route, not a stored file |
 | July 2026 | **v1 complete** — all 7 epics done, `node check.mjs` at 126/126 |
+| July 2026 | Added Tailwind CSS 3 to the stack (Epic 8) — the app had no CSS framework before this; needed to deliver the SHEQ Partner brand tokens/utility classes the epic spec was written against |
+| July 2026 | **Epic 8 complete** — SHEQ Partner navy/gold branding applied across every screen, the certificate PDF, and the invitation email; no behavior changed; `node check.mjs` at 138/138 |

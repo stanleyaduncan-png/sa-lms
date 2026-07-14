@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth";
 import { getCourse } from "@/actions/courses";
 import { getGrantsForCourse, getActiveOrganizations } from "@/actions/courseGrants";
 import GrantsClient from "./GrantsClient";
+import DashboardShell from "@/components/DashboardShell";
+import { link } from "@/lib/ui";
 
 export default async function CourseGrantsPage({
   params,
@@ -20,12 +22,11 @@ export default async function CourseGrantsPage({
 
   if (!course) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Course not found</h1>
+      <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Course not found">
         <p>
-          <a href="/owner/courses">← Back to courses</a>
+          <a href="/owner/courses" className={link}>← Back to courses</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
@@ -35,12 +36,14 @@ export default async function CourseGrantsPage({
   ]);
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>
-        Grants — {course.title} ({course.status})
-      </h1>
-      <p>
-        <a href={`/owner/courses/${course.id}`}>← Back to course</a>
+    <DashboardShell
+      role="OWNER"
+      userName={session?.user.name}
+      userEmail={session?.user.email}
+      title={`Grants — ${course.title} (${course.status})`}
+    >
+      <p className="mb-6">
+        <a href={`/owner/courses/${course.id}`} className={link}>← Back to course</a>
       </p>
       <GrantsClient
         courseId={course.id}
@@ -48,6 +51,6 @@ export default async function CourseGrantsPage({
         grants={grants}
         organizations={organizations}
       />
-    </main>
+    </DashboardShell>
   );
 }

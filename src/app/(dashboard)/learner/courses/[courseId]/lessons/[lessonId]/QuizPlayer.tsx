@@ -7,6 +7,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitQuizAttempt } from "@/actions/quizAttempts";
+import StatusBadge from "@/components/StatusBadge";
+import { btnPrimary, btnTertiary, errorText, card, sectionHeading } from "@/lib/ui";
 
 type LearnerQuestion = {
   id: string;
@@ -72,31 +74,33 @@ export default function QuizPlayer({
   }
 
   return (
-    <div style={{ marginTop: "2rem", border: "1px solid #ccc", padding: "1rem" }}>
-      <h2>Quiz</h2>
-      <p>
+    <div className={`${card} mt-8`}>
+      <h2 className={sectionHeading}>Quiz</h2>
+      <p className="text-sm text-navy-700">
         Pass threshold: {quiz.passThreshold}%
         {quiz.maxAttempts && ` · ${attemptCount} of ${quiz.maxAttempts} attempts used`}
       </p>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={`${errorText} mt-2`}>{error}</p>}
 
       {result ? (
-        <div>
-          <p style={{ fontWeight: "bold", color: result.passed ? "green" : "red" }}>
-            Score: {Math.round(result.score)}% — {result.passed ? "PASSED" : "FAILED"}
-          </p>
-          {!result.passed && !exhausted && <button onClick={handleRetake}>Retake quiz</button>}
-          {!result.passed && exhausted && <p>No attempts remaining.</p>}
+        <div className="mt-3">
+          <div className="flex items-center gap-2">
+            <StatusBadge kind={result.passed ? "complete" : "failed"} label={`Score: ${Math.round(result.score)}% — ${result.passed ? "PASSED" : "FAILED"}`} />
+          </div>
+          {!result.passed && !exhausted && (
+            <button onClick={handleRetake} className={`${btnPrimary} mt-3`}>Retake quiz</button>
+          )}
+          {!result.passed && exhausted && <p className="mt-3 text-navy-700">No attempts remaining.</p>}
         </div>
       ) : exhausted ? (
-        <p>You have used all {quiz.maxAttempts} attempt(s) for this quiz.</p>
+        <p className="mt-3 text-navy-700">You have used all {quiz.maxAttempts} attempt(s) for this quiz.</p>
       ) : (
-        <div>
+        <div className="mt-3">
           {quiz.questions.map((q) => (
-            <div key={q.id} style={{ marginBottom: "1rem" }}>
-              <p style={{ fontWeight: "bold" }}>{q.text}</p>
+            <div key={q.id} className="mb-4">
+              <p className="font-semibold text-navy-900">{q.text}</p>
               {q.options.map((opt) => (
-                <label key={opt.id} style={{ display: "block" }}>
+                <label key={opt.id} className="mt-1 flex items-center gap-2 text-sm text-navy-900">
                   <input
                     type={q.type === "MULTIPLE_CHOICE" ? "checkbox" : "radio"}
                     name={q.id}
@@ -104,13 +108,14 @@ export default function QuizPlayer({
                     onChange={() =>
                       q.type === "MULTIPLE_CHOICE" ? toggleMulti(q.id, opt.id) : selectSingle(q.id, opt.id)
                     }
-                  />{" "}
+                    className="accent-gold-500"
+                  />
                   {opt.text}
                 </label>
               ))}
             </div>
           ))}
-          <button onClick={handleSubmit} disabled={submitting}>
+          <button onClick={handleSubmit} disabled={submitting} className={btnPrimary}>
             {submitting ? "Submitting..." : "Submit Quiz"}
           </button>
         </div>

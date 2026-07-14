@@ -400,7 +400,49 @@ for (const [file, hint] of epic7Files) {
   exists(file) ? ok(file) : fail(file, hint);
 }
 
-// ─── 14. Git sanity ──────────────────────────────────────────────────────────
+// ─── 14. Epic 8 — Branding & Theme ───────────────────────────────────────────
+
+section("Epic 8 — Branding & Theme");
+
+const epic8Files = [
+  ["tailwind.config.ts",              "Missing Tailwind config with brand color tokens"],
+  ["src/lib/brand.ts",                "Missing brand color source-of-truth constants"],
+  ["src/app/globals.css",             "Missing global stylesheet with brand CSS variables"],
+  ["src/components/BrandLogo.tsx",    "Missing brand logo component (text fallback lockup)"],
+  ["src/components/DashboardShell.tsx", "Missing branded application shell (nav/chrome)"],
+  ["src/components/StatusBadge.tsx",  "Missing non-gold status color ramp component"],
+  ["src/lib/ui.ts",                   "Missing shared button/table/component style constants"],
+];
+for (const [file, hint] of epic8Files) {
+  exists(file) ? ok(file) : fail(file, hint);
+}
+
+const tailwindConfigBody = read("tailwind.config.ts") ?? "";
+tailwindConfigBody.includes("navy") && tailwindConfigBody.includes("gold")
+  ? ok("tailwind.config.ts references navy and gold color tokens")
+  : fail("tailwind.config.ts missing navy/gold color tokens", "Check theme.extend.colors");
+
+const brandFolderExists = exists("public/brand");
+brandFolderExists
+  ? ok("public/brand/ exists")
+  : fail("public/brand/ missing", "Logo asset folder should exist even if using text fallback");
+
+const faviconExists = exists("public/brand/favicon.png") || exists("public/brand/favicon.ico");
+faviconExists
+  ? ok("Favicon present under public/brand/")
+  : fail("No favicon found under public/brand/", "Add favicon.png or favicon.ico");
+
+const certTemplateBody = read("src/lib/certificateTemplate.ts") ?? "";
+certTemplateBody.includes("brand")
+  ? ok("Certificate template references brand color tokens")
+  : fail("Certificate template does not appear to reference brand.ts", "Check src/lib/certificateTemplate.ts imports");
+
+const emailTemplateBody = read("src/lib/emailTemplates.ts") ?? "";
+emailTemplateBody.includes("#011635") && emailTemplateBody.includes("#F7B40B")
+  ? ok("Invitation email template uses brand navy/gold hex values")
+  : fail("Invitation email template missing brand colors", "Check src/lib/emailTemplates.ts");
+
+// ─── 15. Git sanity ──────────────────────────────────────────────────────────
 
 section("Git");
 

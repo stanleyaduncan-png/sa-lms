@@ -4,29 +4,31 @@
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import LogoutButton from "@/components/LogoutButton";
+import DashboardShell from "@/components/DashboardShell";
+import { card } from "@/lib/ui";
 
 export default async function OwnerDashboardPage() {
   const session = await getServerSession(authOptions);
   console.log("[owner dashboard] session role:", session?.user.role);
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Owner Dashboard</h1>
-      <p>
-        <a href="/owner/organizations">Organizations</a> ·{" "}
-        <a href="/owner/invitations">Invitations</a> ·{" "}
-        <a href="/owner/courses">Courses</a> ·{" "}
-        <a href="/owner/progress">Progress</a> ·{" "}
-        <a href="/owner/certificates">Certificates</a> ·{" "}
-        <a href="/owner/reports">Reports</a>
-      </p>
-      <ul>
-        <li>Name: {session?.user.name}</li>
-        <li>Email: {session?.user.email}</li>
-        <li>Role: {session?.user.role}</li>
-      </ul>
-      <LogoutButton />
-    </main>
+    <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Owner Dashboard">
+      <div className={card}>
+        <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="font-semibold text-navy-700">Name</dt>
+            <dd className="text-navy-900">{session?.user.name}</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-navy-700">Email</dt>
+            <dd className="text-navy-900">{session?.user.email}</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-navy-700">Role</dt>
+            <dd className="text-navy-900">{session?.user.role}</dd>
+          </div>
+        </dl>
+      </div>
+    </DashboardShell>
   );
 }

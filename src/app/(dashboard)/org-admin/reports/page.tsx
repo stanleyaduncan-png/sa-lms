@@ -8,6 +8,8 @@ import { authOptions } from "@/lib/auth";
 import { getOrgAdminRoster, getOrgAdminCourseSummary, exportOrgAdminReportCsv } from "@/actions/reports";
 import { getOrgCertificates } from "@/actions/certificates";
 import CsvExportButton from "@/components/CsvExportButton";
+import DashboardShell from "@/components/DashboardShell";
+import { tableWrap, table, tableHeadRow, tableHeadCell, tableRow, tableCell, sectionHeading, link } from "@/lib/ui";
 
 export default async function OrgAdminReportsPage() {
   const session = await getServerSession(authOptions);
@@ -15,13 +17,12 @@ export default async function OrgAdminReportsPage() {
 
   if (session?.user.role !== "ORG_ADMIN") {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Reports</h1>
-        <p>This view is scoped to a single organization&apos;s Org Admin.</p>
+      <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Reports">
+        <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/reports">Go to Owner reports</a>
+          <a href="/owner/reports" className={link}>Go to Owner reports</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
@@ -32,96 +33,102 @@ export default async function OrgAdminReportsPage() {
   ]);
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Reports</h1>
-      <p>
-        <a href="/org-admin">← Back to dashboard</a>
-      </p>
-      <p>
-        <CsvExportButton label="Export CSV" action={exportOrgAdminReportCsv} filename="org-report.csv" />
-      </p>
+    <DashboardShell role="ORG_ADMIN" userName={session?.user.name} userEmail={session?.user.email} title="Reports">
+      <CsvExportButton label="Export CSV" action={exportOrgAdminReportCsv} filename="org-report.csv" />
 
-      <h2>Learner Roster</h2>
-      {roster.length === 0 && <p>No learners in your organization yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Learner</th>
-            <th>Course</th>
-            <th>Progress</th>
-            <th>Completed</th>
-          </tr>
-        </thead>
-        <tbody>
-          {roster.flatMap((learner) =>
-            learner.enrollments.length === 0 ? (
-              <tr key={learner.id} style={{ borderBottom: "1px solid #eee" }}>
-                <td>
-                  {learner.name} ({learner.email})
-                </td>
-                <td colSpan={3}>No enrollments yet</td>
+      <h2 className={sectionHeading}>Learner Roster</h2>
+      {roster.length === 0 && <p className="text-navy-700">No learners in your organization yet.</p>}
+      {roster.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Learner</th>
+                <th className={tableHeadCell}>Course</th>
+                <th className={tableHeadCell}>Progress</th>
+                <th className={tableHeadCell}>Completed</th>
               </tr>
-            ) : (
-              learner.enrollments.map((e, i) => (
-                <tr key={`${learner.id}-${i}`} style={{ borderBottom: "1px solid #eee" }}>
-                  <td>
-                    {learner.name} ({learner.email})
+            </thead>
+            <tbody>
+              {roster.flatMap((learner) =>
+                learner.enrollments.length === 0 ? (
+                  <tr key={learner.id} className={tableRow}>
+                    <td className={tableCell}>
+                      {learner.name} ({learner.email})
+                    </td>
+                    <td className={tableCell} colSpan={3}>No enrollments yet</td>
+                  </tr>
+                ) : (
+                  learner.enrollments.map((e, i) => (
+                    <tr key={`${learner.id}-${i}`} className={tableRow}>
+                      <td className={tableCell}>
+                        {learner.name} ({learner.email})
+                      </td>
+                      <td className={tableCell}>{e.courseTitle}</td>
+                      <td className={tableCell}>{e.progressPercent}%</td>
+                      <td className={tableCell}>{e.completedAt ? new Date(e.completedAt).toLocaleDateString() : "—"}</td>
+                    </tr>
+                  ))
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <h2 className={sectionHeading}>Course Completion (within your org)</h2>
+      {courseSummary.length === 0 && <p className="text-navy-700">No enrollments yet.</p>}
+      {courseSummary.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Course</th>
+                <th className={tableHeadCell}>Enrollments</th>
+                <th className={tableHeadCell}>Completion Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courseSummary.map((course) => (
+                <tr key={course.id} className={tableRow}>
+                  <td className={tableCell}>{course.title}</td>
+                  <td className={tableCell}>
+                    {course.completedEnrollments} / {course.totalEnrollments}
                   </td>
-                  <td>{e.courseTitle}</td>
-                  <td>{e.progressPercent}%</td>
-                  <td>{e.completedAt ? new Date(e.completedAt).toLocaleDateString() : "—"}</td>
+                  <td className={tableCell}>{course.completionRate}%</td>
                 </tr>
-              ))
-            )
-          )}
-        </tbody>
-      </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <h2>Course Completion (within your org)</h2>
-      {courseSummary.length === 0 && <p>No enrollments yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Course</th>
-            <th>Enrollments</th>
-            <th>Completion Rate</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courseSummary.map((course) => (
-            <tr key={course.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>{course.title}</td>
-              <td>
-                {course.completedEnrollments} / {course.totalEnrollments}
-              </td>
-              <td>{course.completionRate}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <h2>Certificates Earned</h2>
-      {certificates.length === 0 && <p>No certificates issued yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Learner</th>
-            <th>Course</th>
-            <th>Issued</th>
-          </tr>
-        </thead>
-        <tbody>
-          {certificates.map((cert) => (
-            <tr key={cert.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>
-                {cert.user.name} ({cert.user.email})
-              </td>
-              <td>{cert.course.title}</td>
-              <td>{new Date(cert.issuedAt).toLocaleDateString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+      <h2 className={sectionHeading}>Certificates Earned</h2>
+      {certificates.length === 0 && <p className="text-navy-700">No certificates issued yet.</p>}
+      {certificates.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Learner</th>
+                <th className={tableHeadCell}>Course</th>
+                <th className={tableHeadCell}>Issued</th>
+              </tr>
+            </thead>
+            <tbody>
+              {certificates.map((cert) => (
+                <tr key={cert.id} className={tableRow}>
+                  <td className={tableCell}>
+                    {cert.user.name} ({cert.user.email})
+                  </td>
+                  <td className={tableCell}>{cert.course.title}</td>
+                  <td className={tableCell}>{new Date(cert.issuedAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

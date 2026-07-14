@@ -8,6 +8,21 @@ import {
   revokeInvitation,
   getAllInvitations,
 } from "@/actions/invitations";
+import StatusBadge from "@/components/StatusBadge";
+import {
+  btnPrimary,
+  btnTertiary,
+  input,
+  errorText,
+  successText,
+  sectionHeading,
+  tableWrap,
+  table,
+  tableHeadRow,
+  tableHeadCell,
+  tableRow,
+  tableCell,
+} from "@/lib/ui";
 
 type Invitation = Awaited<ReturnType<typeof getAllInvitations>>[number];
 
@@ -53,53 +68,70 @@ export default function InvitationsClient({ invitations }: { invitations: Invita
 
   return (
     <div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {info && <p style={{ color: "green" }}>{info}</p>}
+      {error && <p className={errorText}>{error}</p>}
+      {info && <p className={successText}>{info}</p>}
 
-      <h2>Invite Individual Learner</h2>
-      <form onSubmit={handleInvite} style={{ display: "flex", gap: "0.5rem", maxWidth: "480px" }}>
+      <h2 className={sectionHeading}>Invite Individual Learner</h2>
+      <form onSubmit={handleInvite} className="flex max-w-md gap-2">
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className={input}
         />
-        <button type="submit">Send Invitation</button>
+        <button type="submit" className={btnPrimary}>Send Invitation</button>
       </form>
 
-      <h2>All Invitations</h2>
-      {invitations.length === 0 && <p>No invitations yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Email</th>
-            <th>Organization</th>
-            <th>Status</th>
-            <th>Sent</th>
-            <th>Expires</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {invitations.map((inv) => (
-            <tr key={inv.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>{inv.email}</td>
-              <td>{inv.organization?.name ?? "— individual —"}</td>
-              <td>{inv.status}</td>
-              <td>{new Date(inv.createdAt).toLocaleDateString()}</td>
-              <td>{new Date(inv.expiresAt).toLocaleDateString()}</td>
-              <td>
-                {inv.status === "PENDING" && (
-                  <button onClick={() => handleRevoke(inv.id)}>Revoke</button>
-                )}
-                {(inv.status === "PENDING" || inv.status === "EXPIRED") && (
-                  <button onClick={() => handleResend(inv.id)}>Resend</button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2 className={sectionHeading}>All Invitations</h2>
+      {invitations.length === 0 && <p className="text-navy-700">No invitations yet.</p>}
+      {invitations.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Email</th>
+                <th className={tableHeadCell}>Organization</th>
+                <th className={tableHeadCell}>Status</th>
+                <th className={tableHeadCell}>Sent</th>
+                <th className={tableHeadCell}>Expires</th>
+                <th className={tableHeadCell}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {invitations.map((inv) => (
+                <tr key={inv.id} className={tableRow}>
+                  <td className={tableCell}>{inv.email}</td>
+                  <td className={tableCell}>{inv.organization?.name ?? "— individual —"}</td>
+                  <td className={tableCell}>
+                    {inv.status === "ACCEPTED" ? (
+                      <StatusBadge kind="complete" label="Accepted" />
+                    ) : inv.status === "PENDING" ? (
+                      <StatusBadge kind="in-progress" label="Pending" />
+                    ) : inv.status === "EXPIRED" ? (
+                      <StatusBadge kind="expired" label="Expired" />
+                    ) : (
+                      <StatusBadge kind="expired" label={inv.status} />
+                    )}
+                  </td>
+                  <td className={tableCell}>{new Date(inv.createdAt).toLocaleDateString()}</td>
+                  <td className={tableCell}>{new Date(inv.expiresAt).toLocaleDateString()}</td>
+                  <td className={tableCell}>
+                    <div className="flex gap-2">
+                      {inv.status === "PENDING" && (
+                        <button onClick={() => handleRevoke(inv.id)} className={btnTertiary}>Revoke</button>
+                      )}
+                      {(inv.status === "PENDING" || inv.status === "EXPIRED") && (
+                        <button onClick={() => handleResend(inv.id)} className={btnTertiary}>Resend</button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

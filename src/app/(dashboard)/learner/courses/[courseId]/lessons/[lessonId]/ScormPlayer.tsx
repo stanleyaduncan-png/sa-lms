@@ -19,6 +19,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Progress } from "@prisma/client";
 import { updateScormProgress } from "@/actions/progress";
+import StatusBadge from "@/components/StatusBadge";
 
 type ScormData = {
   lessonStatus?: string;
@@ -194,20 +195,34 @@ export default function ScormPlayer({
   }, []);
 
   if (!contentUrl) {
-    return <p>No SCORM package URL set for this lesson.</p>;
+    return <p className="text-navy-700">No SCORM package URL set for this lesson.</p>;
   }
+
+  const scormStatusBadge =
+    displayStatus === "completed" || displayStatus === "passed" ? (
+      <StatusBadge kind="complete" label={displayStatus} />
+    ) : displayStatus === "failed" ? (
+      <StatusBadge kind="failed" label={displayStatus} />
+    ) : displayStatus === "incomplete" || displayStatus === "browsed" ? (
+      <StatusBadge kind="in-progress" label={displayStatus} />
+    ) : (
+      <StatusBadge kind="not-started" label={displayStatus} />
+    );
 
   return (
     <div>
-      <p>SCORM status: {displayStatus}</p>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-sm text-navy-700">SCORM status:</span>
+        {scormStatusBadge}
+      </div>
       {apiReady ? (
         <iframe
           src={contentUrl}
           title="SCORM content"
-          style={{ width: "100%", height: "480px", border: "1px solid #ccc" }}
+          className="h-[480px] w-full rounded-lg border border-navy-100"
         />
       ) : (
-        <p>Loading SCORM API…</p>
+        <p className="text-navy-700">Loading SCORM API…</p>
       )}
     </div>
   );

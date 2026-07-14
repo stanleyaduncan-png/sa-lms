@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SHEQ Partner brand tokens, mirrored from src/lib/brand.ts for any
+   non-Tailwind surface that can read CSS (Tailwind config, the PDF
+   generator, and email templates all use brand.ts directly, since neither
+   pdf-lib nor most email clients evaluate CSS variables). Keep in sync. */
+:root {
+  --brand-navy-50: #F2F3F5;
+  --brand-navy-100: #E6E8EB;
+  --brand-navy-200: #CCD0D7;
+  --brand-navy-300: #A6ADB8;
+  --brand-navy-400: #7B8696;
+  --brand-navy-500: #5A687C;
+  --brand-navy-600: #3E4E65;
+  --brand-navy-700: #253751;
+  --brand-navy-800: #102441;
+  --brand-navy-900: #011635;
+  --brand-navy-950: #010E22;
+
+  --brand-gold-50: #FEF9EB;
+  --brand-gold-100: #FEF3D8;
+  --brand-gold-200: #FCE7B1;
+  --brand-gold-300: #FBD67B;
+  --brand-gold-400: #F9C441;
+  --brand-gold-500: #F7B40B;
+  --brand-gold-600: #D99E0A;
+  --brand-gold-700: #B28208;
+  --brand-gold-800: #886306;
+  --brand-gold-900: #634804;
+  --brand-gold-950: #453203;
+
+  --brand-off-white: #F7F7F7;
+
+  --status-progress: #2563EB;
+  --status-progress-bg: #EFF6FF;
+  --status-progress-text: #1E40AF;
+  --status-complete: #16A34A;
+  --status-complete-bg: #F0FDF4;
+  --status-complete-text: #166534;
+  --status-failed: #DC2626;
+  --status-failed-bg: #FEF2F2;
+  --status-failed-text: #991B1B;
+}
+
+body {
+  background-color: var(--brand-off-white);
+  color: var(--brand-navy-900);
+}

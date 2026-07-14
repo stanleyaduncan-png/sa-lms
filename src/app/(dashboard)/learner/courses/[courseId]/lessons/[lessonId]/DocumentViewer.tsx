@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Progress } from "@prisma/client";
 import { updateLessonProgress } from "@/actions/progress";
+import { btnPrimary, link } from "@/lib/ui";
 
 export default function DocumentViewer({
   lessonId,
@@ -31,14 +32,14 @@ export default function DocumentViewer({
     <div>
       {contentUrl ? (
         <p>
-          <a href={contentUrl} target="_blank" rel="noreferrer">
+          <a href={contentUrl} target="_blank" rel="noreferrer" className={link}>
             Open document
           </a>
         </p>
       ) : (
-        <p>No document URL set for this lesson.</p>
+        <p className="text-navy-700">No document URL set for this lesson.</p>
       )}
-      <button onClick={handleMarkRead} disabled={isComplete || marking}>
+      <button onClick={handleMarkRead} disabled={isComplete || marking} className={`${btnPrimary} mt-3`}>
         {isComplete ? "Marked as read" : marking ? "Saving..." : "Mark as read"}
       </button>
     </div>

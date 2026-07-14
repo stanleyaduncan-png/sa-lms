@@ -4,6 +4,9 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgProgress } from "@/actions/progress";
+import DashboardShell from "@/components/DashboardShell";
+import StatusBadge from "@/components/StatusBadge";
+import { tableWrap, table, tableHeadRow, tableHeadCell, tableRow, tableCell, link } from "@/lib/ui";
 
 export default async function OrgAdminProgressPage() {
   const session = await getServerSession(authOptions);
@@ -11,49 +14,56 @@ export default async function OrgAdminProgressPage() {
 
   if (session?.user.role !== "ORG_ADMIN") {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Progress</h1>
-        <p>This view is scoped to a single organization&apos;s Org Admin.</p>
+      <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Progress">
+        <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/progress">Go to Owner progress</a>
+          <a href="/owner/progress" className={link}>Go to Owner progress</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
   const enrollments = await getOrgProgress();
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Learner Progress</h1>
-      <p>
-        <a href="/org-admin">← Back to dashboard</a>
-      </p>
-      {enrollments.length === 0 && <p>No enrollments yet.</p>}
-      <table cellPadding={6} style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-            <th>Learner</th>
-            <th>Course</th>
-            <th>Source</th>
-            <th>Progress</th>
-            <th>Completed</th>
-          </tr>
-        </thead>
-        <tbody>
-          {enrollments.map((e) => (
-            <tr key={e.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td>
-                {e.user.name} ({e.user.email})
-              </td>
-              <td>{e.course.title}</td>
-              <td>{e.source}</td>
-              <td>{e.progressPercent}%</td>
-              <td>{e.completedAt ? new Date(e.completedAt).toLocaleDateString() : "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+    <DashboardShell role="ORG_ADMIN" userName={session?.user.name} userEmail={session?.user.email} title="Learner Progress">
+      {enrollments.length === 0 && <p className="text-navy-700">No enrollments yet.</p>}
+      {enrollments.length > 0 && (
+        <div className={tableWrap}>
+          <table className={table}>
+            <thead>
+              <tr className={tableHeadRow}>
+                <th className={tableHeadCell}>Learner</th>
+                <th className={tableHeadCell}>Course</th>
+                <th className={tableHeadCell}>Source</th>
+                <th className={tableHeadCell}>Progress</th>
+                <th className={tableHeadCell}>Completed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enrollments.map((e) => (
+                <tr key={e.id} className={tableRow}>
+                  <td className={tableCell}>
+                    {e.user.name} ({e.user.email})
+                  </td>
+                  <td className={tableCell}>{e.course.title}</td>
+                  <td className={tableCell}>{e.source}</td>
+                  <td className={tableCell}>{e.progressPercent}%</td>
+                  <td className={tableCell}>
+                    {e.completedAt ? (
+                      <StatusBadge kind="complete" label={new Date(e.completedAt).toLocaleDateString()} />
+                    ) : e.progressPercent > 0 ? (
+                      <StatusBadge kind="in-progress" label="In progress" />
+                    ) : (
+                      <StatusBadge kind="not-started" label="Not started" />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </DashboardShell>
   );
 }

@@ -7,6 +7,8 @@ import { getCourse } from "@/actions/courses";
 import { getCourseEnrollments } from "@/actions/enrollments";
 import CourseDetailClient from "./CourseDetailClient";
 import EnrollmentsClient from "./EnrollmentsClient";
+import DashboardShell from "@/components/DashboardShell";
+import { link } from "@/lib/ui";
 
 export default async function CourseDetailPage({
   params,
@@ -22,26 +24,28 @@ export default async function CourseDetailPage({
 
   if (!course) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>Course not found</h1>
+      <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Course not found">
         <p>
-          <a href="/owner/courses">← Back to courses</a>
+          <a href="/owner/courses" className={link}>← Back to courses</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>
-        {course.title} — {course.status}
-      </h1>
-      <p>
-        <a href="/owner/courses">← Back to courses</a> ·{" "}
-        <a href={`/owner/courses/${course.id}/grants`}>Grants</a>
+    <DashboardShell
+      role="OWNER"
+      userName={session?.user.name}
+      userEmail={session?.user.email}
+      title={`${course.title} — ${course.status}`}
+    >
+      <p className="mb-6">
+        <a href="/owner/courses" className={link}>← Back to courses</a>{" "}
+        <span className="text-navy-300">·</span>{" "}
+        <a href={`/owner/courses/${course.id}/grants`} className={link}>Grants</a>
       </p>
       <CourseDetailClient course={course} />
       <EnrollmentsClient courseId={course.id} enrollments={enrollments} />
-    </main>
+    </DashboardShell>
   );
 }

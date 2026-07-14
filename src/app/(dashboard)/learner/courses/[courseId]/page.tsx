@@ -7,6 +7,9 @@ import { authOptions } from "@/lib/auth";
 import { getOrEnrollInCourse } from "@/actions/enrollments";
 import { getLearnerCourseView } from "@/actions/progress";
 import { getMyCertificates } from "@/actions/certificates";
+import DashboardShell from "@/components/DashboardShell";
+import StatusBadge from "@/components/StatusBadge";
+import { link, sectionHeading } from "@/lib/ui";
 
 export default async function LearnerCourseDetailPage({
   params,
@@ -20,26 +23,24 @@ export default async function LearnerCourseDetailPage({
   const enrollResult = await getOrEnrollInCourse(courseId);
   if ("error" in enrollResult) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>No access</h1>
-        <p>{enrollResult.error}</p>
+      <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title="No access">
+        <p className="text-navy-700">{enrollResult.error}</p>
         <p>
-          <a href="/learner">← Back to my courses</a>
+          <a href="/learner" className={link}>← Back to my courses</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
   const view = await getLearnerCourseView(courseId);
   if ("error" in view) {
     return (
-      <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-        <h1>No access</h1>
-        <p>{view.error}</p>
+      <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title="No access">
+        <p className="text-navy-700">{view.error}</p>
         <p>
-          <a href="/learner">← Back to my courses</a>
+          <a href="/learner" className={link}>← Back to my courses</a>
         </p>
-      </main>
+      </DashboardShell>
     );
   }
 
@@ -52,35 +53,43 @@ export default async function LearnerCourseDetailPage({
   }
 
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>{course.title}</h1>
-      <p>
-        <a href="/learner">← Back to my courses</a>
+    <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title={course.title}>
+      <p className="mb-6">
+        <a href="/learner" className={link}>← Back to my courses</a>
       </p>
       {enrollment.completedAt && (
-        <p style={{ color: "green" }}>
-          Course complete ({new Date(enrollment.completedAt).toLocaleDateString()})
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <StatusBadge kind="complete" label={`Course complete — ${new Date(enrollment.completedAt).toLocaleDateString()}`} />
           {certificatePdfUrl && (
-            <>
-              {" — "}
-              <a href={certificatePdfUrl}>Download certificate</a>
-            </>
+            <a href={certificatePdfUrl} className={link}>Download certificate</a>
           )}
-        </p>
+        </div>
       )}
       {course.sections.map((section) => (
-        <div key={section.id} style={{ marginTop: "1rem" }}>
-          <h2>{section.title}</h2>
-          <ul style={{ listStyle: "none", padding: 0 }}>
+        <div key={section.id} className="mt-4">
+          <h2 className={sectionHeading}>{section.title}</h2>
+          <ul className="divide-y divide-navy-100 rounded-lg border border-navy-100 bg-white">
             {section.lessons.map((lesson) => (
-              <li key={lesson.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
+              <li key={lesson.id} className="flex items-center justify-between px-4 py-3">
                 {lesson.locked ? (
-                  <span style={{ color: "#888" }}>
+                  <span className="text-navy-400">
                     🔒 {lesson.title} — [{lesson.contentType}] (locked until prior lesson completes)
                   </span>
                 ) : (
-                  <a href={`/learner/courses/${course.id}/lessons/${lesson.id}`}>
-                    {lesson.title} — [{lesson.contentType}] — {lesson.progress?.status ?? "NOT_STARTED"}
+                  <a
+                    href={`/learner/courses/${course.id}/lessons/${lesson.id}`}
+                    className={`${link} flex flex-1 items-center justify-between gap-3`}
+                  >
+                    <span>
+                      {lesson.title} — [{lesson.contentType}]
+                    </span>
+                    {lesson.progress?.status === "COMPLETE" ? (
+                      <StatusBadge kind="complete" label="Complete" />
+                    ) : lesson.progress?.status === "IN_PROGRESS" ? (
+                      <StatusBadge kind="in-progress" label="In progress" />
+                    ) : (
+                      <StatusBadge kind="not-started" label="Not started" />
+                    )}
                   </a>
                 )}
               </li>
@@ -88,6 +97,6 @@ export default async function LearnerCourseDetailPage({
           </ul>
         </div>
       ))}
-    </main>
+    </DashboardShell>
   );
 }
