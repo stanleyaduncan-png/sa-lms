@@ -5,6 +5,7 @@
 // session.user.organizationId server-side - never from a client-supplied
 // value. This is what keeps ACC-05 (org data isolation) true.
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgInvitations } from "@/actions/invitations";
@@ -23,7 +24,7 @@ export default async function OrgAdminInvitationsPage() {
       <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Invitations">
         <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/invitations" className={link}>Go to Owner invitations</a>
+          <Link href="/owner/invitations" className={link}>Go to Owner invitations</Link>
         </p>
       </DashboardShell>
     );

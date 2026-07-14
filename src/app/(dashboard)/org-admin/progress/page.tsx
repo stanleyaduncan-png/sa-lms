@@ -1,6 +1,7 @@
 // Org Admin: per-learner progress, scoped to their own org only (TRK-07).
 // Protected by src/middleware.ts (role === ORG_ADMIN or OWNER).
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgProgress } from "@/actions/progress";
@@ -17,7 +18,7 @@ export default async function OrgAdminProgressPage() {
       <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Progress">
         <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/progress" className={link}>Go to Owner progress</a>
+          <Link href="/owner/progress" className={link}>Go to Owner progress</Link>
         </p>
       </DashboardShell>
     );

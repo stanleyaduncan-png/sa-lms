@@ -1,6 +1,7 @@
 // Org Admin: certificates earned by their own org's learners (CERT-04).
 // Protected by src/middleware.ts (role === ORG_ADMIN or OWNER).
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgCertificates } from "@/actions/certificates";
@@ -16,7 +17,7 @@ export default async function OrgAdminCertificatesPage() {
       <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Certificates">
         <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/certificates" className={link}>Go to Owner certificates</a>
+          <Link href="/owner/certificates" className={link}>Go to Owner certificates</Link>
         </p>
       </DashboardShell>
     );

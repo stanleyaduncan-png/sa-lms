@@ -2,6 +2,7 @@
 // CRS-09 lock enforcement. Opening this page is also the lazy
 // auto-enrollment trigger for org-granted courses (Epic 4 risk #5).
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrEnrollInCourse } from "@/actions/enrollments";
@@ -26,7 +27,7 @@ export default async function LearnerCourseDetailPage({
       <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title="No access">
         <p className="text-navy-700">{enrollResult.error}</p>
         <p>
-          <a href="/learner" className={link}>← Back to my courses</a>
+          <Link href="/learner" className={link}>← Back to my courses</Link>
         </p>
       </DashboardShell>
     );
@@ -38,7 +39,7 @@ export default async function LearnerCourseDetailPage({
       <DashboardShell role="LEARNER" userName={session?.user.name} userEmail={session?.user.email} title="No access">
         <p className="text-navy-700">{view.error}</p>
         <p>
-          <a href="/learner" className={link}>← Back to my courses</a>
+          <Link href="/learner" className={link}>← Back to my courses</Link>
         </p>
       </DashboardShell>
     );
@@ -76,7 +77,7 @@ export default async function LearnerCourseDetailPage({
                     🔒 {lesson.title} — [{lesson.contentType}] (locked until prior lesson completes)
                   </span>
                 ) : (
-                  <a
+                  <Link
                     href={`/learner/courses/${course.id}/lessons/${lesson.id}`}
                     className={`${link} flex flex-1 items-center justify-between gap-3`}
                   >
@@ -90,7 +91,7 @@ export default async function LearnerCourseDetailPage({
                     ) : (
                       <StatusBadge kind="not-started" label="Not started" />
                     )}
-                  </a>
+                  </Link>
                 )}
               </li>
             ))}

@@ -1,6 +1,7 @@
 // Owner: course-to-org grants (ACC-02 partial).
 // Protected by src/middleware.ts (role === OWNER).
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCourse } from "@/actions/courses";
@@ -24,7 +25,7 @@ export default async function CourseGrantsPage({
     return (
       <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Course not found">
         <p>
-          <a href="/owner/courses" className={link}>← Back to courses</a>
+          <Link href="/owner/courses" className={link}>← Back to courses</Link>
         </p>
       </DashboardShell>
     );
@@ -43,7 +44,7 @@ export default async function CourseGrantsPage({
       title={`Grants — ${course.title} (${course.status})`}
     >
       <p className="mb-6">
-        <a href={`/owner/courses/${course.id}`} className={link}>← Back to course</a>
+        <Link href={`/owner/courses/${course.id}`} className={link}>← Back to course</Link>
       </p>
       <GrantsClient
         courseId={course.id}

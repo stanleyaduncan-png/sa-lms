@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitQuizAttempt } from "@/actions/quizAttempts";
 import StatusBadge from "@/components/StatusBadge";
-import { btnPrimary, btnTertiary, errorText, card, sectionHeading } from "@/lib/ui";
+import { btnPrimary, errorText, card, sectionHeading } from "@/lib/ui";
 
 type LearnerQuestion = {
   id: string;

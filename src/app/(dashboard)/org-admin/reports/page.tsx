@@ -3,6 +3,7 @@
 // to session.user.organizationId server-side - this page never passes a
 // client-supplied org id anywhere (Epic 7 risk #1).
 
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOrgAdminRoster, getOrgAdminCourseSummary, exportOrgAdminReportCsv } from "@/actions/reports";
@@ -20,7 +21,7 @@ export default async function OrgAdminReportsPage() {
       <DashboardShell role="OWNER" userName={session?.user.name} userEmail={session?.user.email} title="Reports">
         <p className="text-navy-700">This view is scoped to a single organization&apos;s Org Admin.</p>
         <p>
-          <a href="/owner/reports" className={link}>Go to Owner reports</a>
+          <Link href="/owner/reports" className={link}>Go to Owner reports</Link>
         </p>
       </DashboardShell>
     );
